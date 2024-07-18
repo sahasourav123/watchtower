@@ -1,0 +1,50 @@
+services:
+
+  # Database services
+  postgres:
+    container_name: postgres
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    restart: always
+    environment:
+      POSTGRES_DB: app_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports:
+      - '6379:6379'
+    restart: always
+    command: redis-server --save 20 1
+
+  # Frontend services
+  frontend:
+    env_file: .env
+    build:
+      dockerfile: Dockerfile
+      context: frontend/
+    image: souravsaha/watchtower:frontend
+    container_name: frontend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+
+  # Backend services
+  backend:
+    env_file: .env
+    build:
+      dockerfile: Dockerfile
+      context: backend/
+    image: souravsaha/watchtower:backend
+    container_name: backend
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+
+volumes:
+  postgres-data:

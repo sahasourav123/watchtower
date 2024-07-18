@@ -1,0 +1,10 @@
+uvicorn==0.30.0
+fastapi==0.111.0
+fastapi-redis-cache==0.2.5
+python-multipart==0.0.9
+
+requests==2.32.3
+pandas==2.2.2
+envyaml==1.10.211231
+apscheduler==3.10.4
+psycopg2-binary==2.9.9
