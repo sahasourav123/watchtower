@@ -31,7 +31,7 @@ jobs:
       run: BUILD_ARCH=X64 docker compose -f docker-compose-build.yml build frontend
 
     - name: Push docker images
-      run: BUILD_ARCH=X64 docker compose -f docker-compose-build.yml push
+      run: BUILD_ARCH=X64 docker compose -f docker-compose-build.yml push frontend
 
 
   build_ARM64:
