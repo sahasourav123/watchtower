@@ -7,14 +7,15 @@ import os
 import logging
 from datetime import datetime
 
+from __version__ import __version__
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response, APIRouter
 from fastapi_redis_cache import FastApiRedisCache, cache
 
 
 # Initialize app
-__version__ = '0.0.1'
-__service__ = 'towerhouse-service'
+__service__ = 'towerhouse-backend'
 tags_metadata = []
 
 @asynccontextmanager

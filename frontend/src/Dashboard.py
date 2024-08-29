@@ -5,14 +5,13 @@ Created By: Sourav Saha
 from utils import logger
 import streamlit as st
 from svc import svc_backend as backend
-
-__version__ = '0.0.1'
+from __version__ import __version__
 
 # ======================================================================
 # Start Application
 # ======================================================================
-st.set_page_config(layout='wide', page_title='TowerHouse', initial_sidebar_state='expanded')
-st.title(f'Tower House')
+st.set_page_config(layout='wide', page_title='The Watchtower', initial_sidebar_state='expanded')
+st.title(f'The Watchtower')
 st.markdown(f'*{__version__}*')
 
 logger.info("initializing app")

@@ -1,0 +1,39 @@
+name: Semantic Release
+
+on:
+  workflow_run:
+    inputs:
+      service:
+        required: true
+        description: 'Select Service to Release'
+        type: choice
+        options:
+          - backend
+          - frontend
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    concurrency: release-${{ github.event.inputs.service }}
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Release Backend
+        if: github.event.inputs.service == 'backend'
+        uses: python-semantic-release/python-semantic-release@v9.8.7
+        with:
+          directory: ./backend
+          github_token: ${{ secrets.GH_TOKEN }}
+
+      - name: Release Frontend
+        if: github.event.inputs.service == 'frontend'
+        uses: python-semantic-release/python-semantic-release@v9.8.7
+        with:
+          directory: ./frontend
+          github_token: ${{ secrets.GH_TOKEN }}
