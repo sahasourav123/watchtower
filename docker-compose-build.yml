@@ -1,0 +1,17 @@
+services:
+
+  # Frontend services
+  frontend:
+    env_file: .env
+    build:
+      dockerfile: Dockerfile
+      context: frontend/
+    image: souravsaha/watchtower:frontend-${BUILD_ARCH}
+
+  # Backend services
+  backend:
+    env_file: .env
+    build:
+      dockerfile: Dockerfile
+      context: backend/
+    image: souravsaha/watchtower:backend-${BUILD_ARCH}

@@ -15,7 +15,7 @@ from fastapi_redis_cache import FastApiRedisCache, cache
 
 
 # Initialize app
-__service__ = 'towerhouse-backend'
+__service__ = 'the-towerhouse-backend'
 tags_metadata = []
 
 @asynccontextmanager

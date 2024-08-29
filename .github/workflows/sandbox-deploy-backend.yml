@@ -1,0 +1,36 @@
+name: sandbox-deploy-backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: true
+
+jobs:
+
+  build:
+    runs-on: self-hosted
+    environment:
+      name: sandbox
+      url: https://watchtower.finanssure.com
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Push Environment variables
+      run: |
+        rm .env
+        echo "${{ secrets.ENV_FILE }}" > .env
+
+    - name: Build Service
+      run: docker compose build backend
+
+    - name: Start Service
+      run: docker compose -p project-watchtower up -d backend
+

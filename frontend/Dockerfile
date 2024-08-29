@@ -9,4 +9,4 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 ENV TZ Asia/Kolkata
 ENV PYTHONPATH "${PYTHONPATH}:/app/src"
 VOLUME ["/data"]
-CMD ["streamlit", "run", "src/Home.py"]
+CMD ["streamlit", "run", "src/Dashboard.py"]

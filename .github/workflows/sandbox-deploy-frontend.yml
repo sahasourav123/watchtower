@@ -1,11 +1,11 @@
-name: deploy-backend
+name: sandbox-deploy-backend
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'backend/**'
+      - 'frontend/**'
 
 concurrency:
   group: deploy-backend
@@ -29,8 +29,8 @@ jobs:
         echo "${{ secrets.ENV_FILE }}" > .env
 
     - name: Build Service
-      run: docker compose build backend
+      run: docker compose build frontend
 
     - name: Start Service
-      run: docker compose -p project-watchtower up -d backend
+      run: docker compose -p project-watchtower up -d frontend
 
