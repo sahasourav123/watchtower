@@ -28,10 +28,10 @@ jobs:
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
     - name: Build Service
-      run: BUILD_ARCH=X64 docker compose build frontend
+      run: BUILD_ARCH=X64 docker compose -f docker-compose-build.yml build frontend
 
     - name: Push docker images
-      run: BUILD_ARCH=X64 docker compose push
+      run: BUILD_ARCH=X64 docker compose -f docker-compose-build.yml push
 
 
   build_ARM64:
@@ -51,7 +51,7 @@ jobs:
         run: BUILD_ARCH=ARM64 docker compose -f docker-compose-build.yml build frontend
 
       - name: Push docker images
-        run: BUILD_ARCH=ARM64 docker compose -f docker-compose-build.yml push
+        run: BUILD_ARCH=ARM64 docker compose -f docker-compose-build.yml push frontend
 
 
   manifest:
