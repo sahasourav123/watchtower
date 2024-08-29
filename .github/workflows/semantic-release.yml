@@ -1,7 +1,7 @@
 name: Semantic Release
 
 on:
-  workflow_run:
+  workflow_dispatch:
     inputs:
       service:
         required: true

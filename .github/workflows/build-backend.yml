@@ -1,12 +1,12 @@
 name: build-backend
 
 on:
-  workflow_run:
 #  push:
 #    branches:
 #      - main
 #    paths:
 #      - 'backend/**'
+  workflow_dispatch:
 
 concurrency:
   group: build-backend

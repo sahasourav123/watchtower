@@ -1,4 +1,4 @@
-name: sandbox-deploy-backend
+name: sandbox-deploy-frontend
 
 on:
   push:

@@ -1,15 +1,15 @@
-name: build-backend
+name: build-frontend
 
 on:
-  workflow_run:
 #  push:
 #    branches:
 #      - main
 #    paths:
-#      - 'backend/**'
+#      - 'frontend/**'
+  workflow_dispatch:
 
 concurrency:
-  group: build-backend
+  group: build-frontend
   cancel-in-progress: true
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
     - name: Build Service
-      run: BUILD_ARCH=X64 docker compose build backend
+      run: BUILD_ARCH=X64 docker compose build frontend
 
     - name: Push docker images
       run: BUILD_ARCH=X64 docker compose push
@@ -48,7 +48,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Build Service
-        run: BUILD_ARCH=ARM64 docker compose -f docker-compose-build.yml build backend
+        run: BUILD_ARCH=ARM64 docker compose -f docker-compose-build.yml build frontend
 
       - name: Push docker images
         run: BUILD_ARCH=ARM64 docker compose -f docker-compose-build.yml push
@@ -67,14 +67,14 @@ jobs:
 
     - name: Remove old manifest
       continue-on-error: true
-      run: docker manifest rm "souravsaha/watchtower:backend"
+      run: docker manifest rm "souravsaha/watchtower:frontend"
 
     - name: Create manifest
       run: |
-        docker manifest create "souravsaha/watchtower:backend" \
-        --amend  "souravsaha/watchtower:backend-X64" \
-        --amend "souravsaha/watchtower:backend-ARM64"
-        docker manifest annotate --arch amd64 "souravsaha/watchtower:backend" "souravsaha/watchtower:backend-X64"
+        docker manifest create "souravsaha/watchtower:frontend" \
+        --amend  "souravsaha/watchtower:frontend-X64" \
+        --amend "souravsaha/watchtower:frontend-ARM64"
+        docker manifest annotate --arch amd64 "souravsaha/watchtower:frontend" "souravsaha/watchtower:frontend-X64"
 
     - name: Push manifest
-      run: docker manifest push "souravsaha/watchtower:backend"
+      run: docker manifest push "souravsaha/watchtower:frontend"

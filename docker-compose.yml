@@ -30,7 +30,7 @@ services:
     container_name: frontend
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8100:8000"
 
   # Backend services
   backend:
@@ -42,7 +42,7 @@ services:
     container_name: backend
     restart: unless-stopped
     ports:
-      - "8001:8000"
+      - "8101:8000"
 
 volumes:
   timescaledb-data:
