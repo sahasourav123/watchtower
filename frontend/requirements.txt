@@ -2,5 +2,5 @@ streamlit==1.38.0
 streamlit-oauth==0.1.13
 extra-streamlit-components==0.1.71
 tabulate==0.9.0
-plotly==5.23.0
+plotly==5.24.0
 rich==13.8.0
