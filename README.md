@@ -44,7 +44,7 @@ Project is live for Public use at [The Watchtower](https://watchtower.finanssure
 7. [ ] Send alerts in different channel
 8. [ ] Organisation & User management
 9. [ ] Manage configs through API
-10.[ ] Manage configs through CLI / CI Pipeline
+10. [ ] Manage configs through CLI / CI Pipeline
 
 # Areas where contribution is appreciated
 1. Scaling the system with container orchestration for public use
