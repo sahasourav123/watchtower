@@ -1,24 +1,9 @@
-"""
-Created On: July 2024
-Created By: Sourav Saha
-"""
 import os
-import logging
-from rich.logging import RichHandler
-
-# load environment variables
-from dotenv import load_dotenv
-base_dir = os.path.dirname(os.getcwd())
-load_dotenv(f"{base_dir}/.env")
-load_dotenv(f"{base_dir}/.env.local", override=True)
-
-logging.basicConfig(level='INFO', format='%(message)s', datefmt="[%X]",  handlers=[RichHandler()])
-logger = logging.getLogger()
-
 import re
 import json
 import psycopg2
 import socket
+import logging
 import threading
 import pandas as pd
 from contextlib import contextmanager
@@ -40,7 +25,6 @@ class DatabaseManager:
         try:
             _this_ = f"wt-{os.getenv('ENV')}-{socket.gethostname()}"
             conn_str = f"dbname=postgres user=postgres password={os.getenv('TIMESCALEDB_PASS')} host={os.getenv('TIMESCALEDB_HOST')} port={os.getenv('TIMESCALEDB_PORT')} application_name={_this_}"
-            print(conn_str)
             conn = psycopg2.connect(conn_str)
             self.logger.info(f'database connection created...')
             return conn
@@ -75,7 +59,7 @@ class DatabaseManager:
             c.close()
             self.lock.release()
 
-    def insert(self, sql: str, data: tuple | dict) -> int:
+    def insert(self, sql: str, data: tuple | dict = ()) -> int:
         _data = self._pre_process(data) if isinstance(data, dict) else data
         with self.cursor_context(sql, _data) as c:
             c.execute(sql, _data)

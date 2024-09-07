@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+import streamlit as st
 from utils import logger
 
 BACKEND_SERVICE = os.getenv('BACKEND_SERVICE', 'http://backend:8000/api/v1')
@@ -21,4 +22,19 @@ def create_monitor(monitor_type, monitor_name, monitor_body, timeout, frequency,
         'alerts': alerts
     }
     res = requests.post(url, data=json.dumps(monitor_data), headers={'Content-Type': 'application/json'})
+
+    # clear cache if successful
+    if res.status_code == 200:
+        fetch_monitors.clear()
+
     return res.json()
+
+@st.cache_data(ttl=300)
+def fetch_monitors(org_id):
+    url = f'{BACKEND_SERVICE}/fetch/monitor?org_id={org_id}'
+    res = requests.get(url)
+    if res.status_code != 200:
+        return []
+
+    data = res.json()['data']
+    return data

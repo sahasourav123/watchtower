@@ -2,7 +2,7 @@
 Created On: July 2024
 Created By: Sourav Saha
 """
-from utils import logger
+from commons import logger
 import os
 import logging
 from datetime import datetime
@@ -14,10 +14,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response, APIRouter, Body
 from fastapi_redis_cache import FastApiRedisCache, cache
 
-import controller
+import data_model as dm
+import scheduler as sch
+import controller as ct
 
 # Initialize app
-__service__ = 'the-towerhouse-backend'
+__service__ = 'the-watchtower-backend'
 tags_metadata = []
 
 @asynccontextmanager
@@ -47,43 +49,66 @@ async def root():
     dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     return {"service": __service__, 'version': __version__, 'server-time': dt}
 
-# create api monitor
-@route.post("/create/monitor")
-def create_monitor(monitor_type: Literal["api", "website", "database", "server", "ssl", "mq"], monitor_data=Body(...)):
-    monitor_id = controller.create_monitor({'monitor_type': monitor_type,  **monitor_data})
-    return {"message": "Monitor created successfully", "monitor_id": monitor_id}
-
 @route.post("/import/monitor")
-def create_monitor(monitor_type: Literal["api", "website", "database", "server", "ssl", "mq"]):
+def import_monitor(org_id: int):
     return {"message": "Monitor imported successfully"}
 
 @route.post("/export/monitor")
-def create_monitor(monitor_type: Literal["api", "website", "database", "server", "ssl", "mq"]):
-    return {"message": "Monitor exported successfully"}
+def export_monitor(org_id: int):
+    pass
+
+# create api monitor
+@route.post("/create/monitor")
+def create_monitor(monitor_type: Literal["api", "website", "database", "server", "ssl", "mq"], monitor_data=dm.MonitorModel):
+    # insert into database
+    monitor_id = ct.insert_monitor({'monitor_type': monitor_type, **monitor_data})
+    # schedule monitoring
+    sch.create_job(monitor_id, monitor_data.interval)
+    return {"message": "Monitor created successfully", "monitor_id": monitor_id}
 
 # update monitor
 @route.put("/update/monitor/{monitor_id}")
-def update_monitor(monitor_id: int):
+def update_monitor(monitor_id: int, monitor_data=dm.MonitorModel):
+    if monitor_data.interval:
+        sch.create_job(monitor_id, monitor_data.interval)
     return {"message": "Monitor updated successfully"}
 
 # delete monitor
 @route.delete("/delete/monitor/{monitor_id}")
 def delete_monitor(monitor_id: int):
+    sch.scheduler.remove_job(f"monitor#{monitor_id}")
     return {"message": "Monitor deleted successfully"}
 
 # get monitor(s)
-@route.get("/fetch/monitors/{monitor_id}")
-def get_monitors(monitor_id: int):
-    return {"message": "Monitor fetched successfully"}
+@route.get("/fetch/monitor")
+@cache(expire=30)
+def get_monitors(response: Response, org_id: int):
+    df = ct.get_monitor_by_orgid(org_id)
+    return {"message": "Monitor fetched successfully", "data": df.to_dict('records')}
+
+# run monitor
+@route.get("/run/monitor/{monitor_id}")
+def run_monitor(monitor_id: int):
+    outcome = ct.run_monitor_by_id(monitor_id)
+    return {'is_success': outcome}
+
+# refresh monitor
+@route.get("/refresh/monitor")
+def refresh_monitor():
+    df = ct.get_all_monitors()
+    for idx, row in df.iterrows():
+        sch.create_job(row['monitor_id'], row['interval'])
+
+    return {"message": "Monitor refreshed successfully"}
 
 # get monitoring history
-@route.get("/fetch/history/monitors/{monitor_id}")
+@route.get("/fetch/history/monitor/{monitor_id}")
 def get_monitor_history(monitor_id: int):
     return {"message": "Monitor history fetched successfully"}
 
 # get status page
-@route.get("/fetch/statuspage/{statuspage_id}")
-def get_statuspage(statuspage_id: int):
+@route.get("/fetch/statuspage/{page_id}")
+def get_statuspage(page_id: int):
     return {"message": "Status page fetched successfully"}
 
 # create status page
@@ -92,13 +117,13 @@ def create_statuspage():
     return {"message": "Status page created successfully"}
 
 # update status page
-@route.put("/update/statuspage/{statuspage_id}")
-def update_statuspage(statuspage_id: int):
+@route.put("/update/statuspage/{page_id}")
+def update_statuspage(page_id: int):
     return {"message": "Status page updated successfully"}
 
 # delete status page
-@route.delete("/delete/statuspage/{statuspage_id}")
-def delete_statuspage(statuspage_id: int):
+@route.delete("/delete/statuspage/{page_id}")
+def delete_statuspage(page_id: int):
     return {"message": "Status page deleted successfully"}
 
 # create alert group

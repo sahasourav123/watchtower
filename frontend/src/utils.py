@@ -7,6 +7,7 @@ import logging
 from rich.logging import RichHandler
 
 import shlex
+import requests
 from urllib.parse import urlparse, parse_qs
 
 # load environment variables
@@ -94,3 +95,12 @@ def parse_curl_command(curl_command):
         'params': params,
         'body': body
     }
+
+
+def test_monitor_config(monitor_body: dict):
+    try:
+        res = requests.request(monitor_body.get('method'), monitor_body.get('url'), headers=monitor_body.get('headers'), params=monitor_body.get('params'), data=monitor_body.get('body'))
+        st.write(f"Response: {res.status_code} | {res.reason}")
+        st.write(res.json())
+    except Exception as e:
+        st.error(f"Invalid Monitor config \n\n {e.args}")
