@@ -1,5 +1,5 @@
 uvicorn==0.30.6
-fastapi==0.112.2
+fastapi==0.114.0
 fastapi-redis-cache==0.2.5
 python-multipart==0.0.9
 rich==13.8.0
@@ -9,3 +9,4 @@ envyaml==1.10.211231
 apscheduler==3.10.4
 psycopg2-binary==2.9.9
 python-dotenv==1.0.1
+SQLAlchemy==2.0.31
