@@ -59,7 +59,7 @@ def export_monitor(org_id: int):
 
 # create api monitor
 @route.post("/create/monitor")
-def create_monitor(monitor_type: Literal["api", "website", "database", "server", "ssl", "mq"], monitor_data=dm.MonitorModel):
+def create_monitor(monitor_type: Literal["api", "website", "database", "server", "ssl", "mq"], monitor_data: dm.MonitorModel):
     # insert into database
     monitor_id = ct.insert_monitor({'monitor_type': monitor_type, **monitor_data})
     # schedule monitoring
@@ -68,7 +68,7 @@ def create_monitor(monitor_type: Literal["api", "website", "database", "server",
 
 # update monitor
 @route.put("/update/monitor/{monitor_id}")
-def update_monitor(monitor_id: int, monitor_data=dm.MonitorModel):
+def update_monitor(monitor_id: int, monitor_data: dm.MonitorModel):
     if monitor_data.interval:
         sch.create_job(monitor_id, monitor_data.interval)
     return {"message": "Monitor updated successfully"}

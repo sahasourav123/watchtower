@@ -1,13 +1,12 @@
 from typing import Literal, Optional
-from pydantic import BaseModel, Extra, PositiveInt, Field
+from pydantic import BaseModel
 
 class MonitorModel(BaseModel):
-    org_id: PositiveInt | None = None
-    # monitor_type: Literal["api", "website", "database", "server", "ssl", "mq"]
-    monitor_name: str | None = None
-    monitor_body: dict | None = None
-    timeout: int | None = None
-    interval: int | None = None
-    expectation: dict | None = None
-    alerts: list[int] | None = None
-    is_active: bool | None = None
+    org_id: Optional[int] = None
+    monitor_name: Optional[str] = None
+    monitor_body: Optional[dict] = None
+    timeout: Optional[int] = None
+    interval: Optional[int] = None
+    expectation: Optional[dict] = None
+    alerts: Optional[list[int]] = None
+    is_active: Optional[bool] = None

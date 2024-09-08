@@ -67,7 +67,8 @@ def run_api_monitor(monitor_body: dict, expectation: dict):
         monitor_body.get('method'), monitor_body.get('url'),
         headers=monitor_body.get('headers'),
         params=monitor_body.get('params'),
-        data=monitor_body.get('body')
+        data=monitor_body.get('body'),
+        verify=False
     )
     logger.info(f"Response: {res.status_code} | {res.reason}")
 
