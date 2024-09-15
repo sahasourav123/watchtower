@@ -3,6 +3,7 @@ import pytz
 import logging
 from typing import Literal
 from commons import logger
+from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
@@ -60,24 +61,26 @@ scheduler = Scheduler().get_scheduler()
 
 def create_job(monitor_id, interval: int):
     job_id = f"monitor#{monitor_id}"
-    scheduler.add_job(ct.run_monitor_by_id, trigger='interval', args=[monitor_id], id=job_id, seconds=interval, replace_existing=True, jitter=30)
+    scheduler.add_job(ct.run_monitor_by_id, trigger='interval', args=[monitor_id], id=job_id, seconds=interval, replace_existing=True, jitter=30, next_run_time=datetime.now())
     logger.info(f"{job_id} scheduled with interval {interval} sec")
 
 def manage_job(action: Literal["pause", "resume", "delete"], monitor_id: int):
     job_id = f"monitor#{monitor_id}"
-    logger.info(f"Job Manager: {action} - {job_id}")
     # retrieve job if exists
     job = scheduler.get_job(job_id)
+    if not job:
+        logger.info(f"Job not found: {job_id}")
+        return job_id
 
     match action.lower():
         case "pause":
-            if job: scheduler.pause_job(job_id)
+            scheduler.pause_job(job_id)
 
         case "resume":
-            if job: scheduler.resume_job(job_id)
+            scheduler.resume_job(job_id)
 
         case "remove":
-            if job: scheduler.remove_job(job_id)
+            scheduler.remove_job(job_id)
 
-    logger.info(f"{action} job: {job_id}")
+    logger.info(f"Job Status Changed: {job_id} | {action}")
     return job_id

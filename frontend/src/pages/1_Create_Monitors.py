@@ -5,6 +5,9 @@ from svc import svc_backend as backend
 
 st.header("Monitors")
 
+import auth
+user_code = auth.ensure_logged_in(required_access_level='viewer')
+
 monitor_type = st.selectbox('Select Monitor Type', ['api', 'website', 'server'], index=0)
 
 sample_curl = """curl --location 'https://watchtower.finanssure.com/api/v1' \
@@ -20,8 +23,8 @@ cc[1].code(f"Method:\t {monitor_body.get('method')} \nURL:\t {monitor_body.get('
 monitor_name = st.text_input('Monitor Name', placeholder='Enter Monitor Name')
 
 cc = st.columns(2)
-monitor_timeout = cc[0].number_input('Request Timeout', value=5)
-monitor_frequency = cc[1].number_input('Monitor Frequency (Minutes)', value=5)
+monitor_timeout = cc[0].number_input('Request Timeout (seconds)', value=5)
+monitor_interval = cc[1].number_input('Monitor Interval (minutes)', value=5)
 
 # Expectation
 test_response = st.radio('Test Response Codes', ['Response Codes - Success', 'Response Codes - Failure'], index=0, horizontal=True)
@@ -56,5 +59,5 @@ if cc[1].button('Create Monitor', type='primary'):
     elif _url in [None, '']:
         st.warning('Enter valid cURL command')
     else:
-        res = backend.create_monitor(monitor_type, monitor_name, monitor_body, monitor_timeout, monitor_frequency * 60, monitor_expectation, alerts)
+        res = backend.create_monitor(monitor_type, monitor_name, monitor_body, monitor_timeout, monitor_interval * 60, monitor_expectation, alerts, user_code)
         st.json(res)

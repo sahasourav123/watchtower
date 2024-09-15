@@ -59,7 +59,7 @@ MONITORS
 @route.post("/create/monitor", tags=['monitor'])
 def create_monitor(monitor_type: Literal["api", "website", "database", "server", "ssl", "mq"], monitor_data: dm.MonitorModel):
     # insert into database
-    monitor_id = ct.insert_monitor({'monitor_type': monitor_type, **monitor_data})
+    monitor_id = ct.insert_monitor({'monitor_type': monitor_type, **monitor_data.model_dump()})
     # schedule monitoring
     sch.create_job(monitor_id, monitor_data.interval)
     return {"message": "Monitor created successfully", "monitor_id": monitor_id}

@@ -1,12 +1,11 @@
 from dateutil import parser
-import pandas as pd
 import streamlit as st
 
 import auth
 from svc import svc_user_api as user_api
 
 st.title("User Profile")
-user_code = auth.ensure_logged_in(required_access_level='user')
+user_code = auth.ensure_logged_in(required_access_level='viewer')
 
 user = user_api.get_user(user_code)
 st.write(f"### Hello, {user['user_name'].split()[0]} !")

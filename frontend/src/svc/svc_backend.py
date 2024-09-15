@@ -1,5 +1,6 @@
 import os
 import json
+import pandas as pd
 import requests
 import streamlit as st
 from utils import logger
@@ -12,20 +13,21 @@ def load_service():
     res = requests.get(BACKEND_SERVICE)
     return res.json()
 
-def create_monitor(monitor_type, monitor_name, monitor_body, timeout, frequency, monitor_expectation, alerts):
+def create_monitor(monitor_type, monitor_name, monitor_body, timeout, interval, monitor_expectation, alerts, user_code):
     url = f'{BACKEND_SERVICE}/create/monitor?monitor_type={monitor_type}'
     monitor_data = {
         'monitor_name': monitor_name,
         'monitor_body': monitor_body,
         'timeout': timeout,
-        'frequency': frequency,
+        'interval': interval,
         'expectation': monitor_expectation,
-        'alerts': alerts
+        'alerts': alerts,
+        'user_code': user_code
     }
     res = requests.post(url, data=json.dumps(monitor_data), headers={'Content-Type': 'application/json'})
 
     # clear cache if successful
-    if res.status_code == 200:
+    if 200 >= res.status_code >= 201:
         fetch_monitors.clear()
 
     return res.json()
@@ -38,4 +40,6 @@ def fetch_monitors(filters: dict):
         return []
 
     data = res.json()['data']
-    return data
+    if len(data) == 0:
+        return pd.DataFrame()
+    return pd.DataFrame(data)
