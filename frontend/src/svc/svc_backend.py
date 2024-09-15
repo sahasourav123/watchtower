@@ -6,6 +6,7 @@ from utils import logger
 
 BACKEND_SERVICE = os.getenv('BACKEND_SERVICE', 'http://backend:8000/api/v1')
 
+@st.cache_data(ttl=1800)
 def load_service():
     logger.info(f"Checking Backend Service: {BACKEND_SERVICE}")
     res = requests.get(BACKEND_SERVICE)
@@ -30,9 +31,9 @@ def create_monitor(monitor_type, monitor_name, monitor_body, timeout, frequency,
     return res.json()
 
 @st.cache_data(ttl=300)
-def fetch_monitors(org_id):
-    url = f'{BACKEND_SERVICE}/fetch/monitor?org_id={org_id}'
-    res = requests.get(url)
+def fetch_monitors(filters: dict):
+    url = f'{BACKEND_SERVICE}/fetch/monitor'
+    res = requests.get(url, params=filters)
     if res.status_code != 200:
         return []
 

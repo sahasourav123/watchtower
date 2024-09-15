@@ -2,6 +2,7 @@
 CREATE TABLE monitors (
     monitor_id      SERIAL       PRIMARY KEY,
     org_id          INT          NOT NULL,
+    user_code       TEXT         NOT NULL,
     monitor_name    TEXT         NOT NULL,
     monitor_type    TEXT         NOT NULL,
     monitor_body    JSONB        NOT NULL,

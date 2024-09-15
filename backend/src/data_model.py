@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class MonitorModel(BaseModel):
     org_id: Optional[int] = None
+    user_code: Optional[str] = None
     monitor_name: Optional[str] = None
     monitor_body: Optional[dict] = None
     timeout: Optional[int] = None

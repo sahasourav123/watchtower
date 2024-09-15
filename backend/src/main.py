@@ -49,16 +49,14 @@ async def root():
     dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     return {"service": __service__, 'version': __version__, 'server-time': dt}
 
-@route.post("/import/monitor")
-def import_monitor(org_id: int):
-    return {"message": "Monitor imported successfully"}
 
-@route.post("/export/monitor")
-def export_monitor(org_id: int):
-    pass
-
+"""
+================================================
+MONITORS
+================================================
+"""
 # create api monitor
-@route.post("/create/monitor")
+@route.post("/create/monitor", tags=['monitor'])
 def create_monitor(monitor_type: Literal["api", "website", "database", "server", "ssl", "mq"], monitor_data: dm.MonitorModel):
     # insert into database
     monitor_id = ct.insert_monitor({'monitor_type': monitor_type, **monitor_data})
@@ -67,33 +65,33 @@ def create_monitor(monitor_type: Literal["api", "website", "database", "server",
     return {"message": "Monitor created successfully", "monitor_id": monitor_id}
 
 # update monitor
-@route.put("/update/monitor/{monitor_id}")
+@route.put("/update/monitor/{monitor_id}", tags=['monitor'])
 def update_monitor(monitor_id: int, monitor_data: dm.MonitorModel):
     if monitor_data.interval:
         sch.create_job(monitor_id, monitor_data.interval)
     return {"message": "Monitor updated successfully"}
 
 # delete monitor
-@route.delete("/delete/monitor/{monitor_id}")
+@route.delete("/delete/monitor/{monitor_id}", tags=['monitor'])
 def delete_monitor(monitor_id: int):
     sch.scheduler.remove_job(f"monitor#{monitor_id}")
     return {"message": "Monitor deleted successfully"}
 
 # get monitor(s)
-@route.get("/fetch/monitor")
+@route.get("/fetch/monitor", tags=['monitor'])
 @cache(expire=30)
-def get_monitors(response: Response, org_id: int):
-    df = ct.get_monitor_by_orgid(org_id)
+def get_monitors(response: Response, org_id: int = None, user_code: str = None):
+    df = ct.get_monitors({'org_id': org_id, 'user_code': user_code})
     return {"message": "Monitor fetched successfully", "data": df.to_dict('records')}
 
 # run monitor
-@route.get("/run/monitor/{monitor_id}")
+@route.get("/run/monitor/{monitor_id}", tags=['monitor'])
 def run_monitor(monitor_id: int):
     outcome = ct.run_monitor_by_id(monitor_id)
     return {'is_success': outcome}
 
 # refresh monitor
-@route.get("/refresh/monitor")
+@route.get("/refresh/monitor", tags=['monitor'])
 def refresh_monitor():
     df = ct.get_all_monitors()
     for idx, row in df.iterrows():
@@ -102,47 +100,67 @@ def refresh_monitor():
     return {"message": "Monitor refreshed successfully"}
 
 # get monitoring history
-@route.get("/fetch/history/monitor/{monitor_id}")
+@route.get("/fetch/history/monitor/{monitor_id}", tags=['monitor'])
 def get_monitor_history(monitor_id: int):
     return {"message": "Monitor history fetched successfully"}
 
+@route.post("/import/monitor", tags=['monitor'])
+def import_monitor(org_id: int):
+    return {"message": "Monitor imported successfully"}
+
+@route.post("/export/monitor", tags=['monitor'])
+def export_monitor(org_id: int):
+    pass
+
+
+"""
+================================================
+STATUS PAGE
+================================================
+"""
 # get status page
-@route.get("/fetch/statuspage/{page_id}")
+@route.get("/fetch/statuspage/{page_id}", tags=['status-page'])
 def get_statuspage(page_id: int):
     return {"message": "Status page fetched successfully"}
 
 # create status page
-@route.post("/create/statuspage")
+@route.post("/create/statuspage", tags=['status-page'])
 def create_statuspage():
     return {"message": "Status page created successfully"}
 
 # update status page
-@route.put("/update/statuspage/{page_id}")
+@route.put("/update/statuspage/{page_id}", tags=['status-page'])
 def update_statuspage(page_id: int):
     return {"message": "Status page updated successfully"}
 
 # delete status page
-@route.delete("/delete/statuspage/{page_id}")
+@route.delete("/delete/statuspage/{page_id}", tags=['status-page'])
 def delete_statuspage(page_id: int):
     return {"message": "Status page deleted successfully"}
 
+
+"""
+================================================
+ALERTS
+================================================
+"""
 # create alert group
-@route.post("/create/alert")
+@route.post("/create/alert", tags=['alert'])
 def create_alert_channel():
     return {"message": "Alert channel created successfully"}
 
 # update alert group
-@route.put("/update/alert/{alert_id}")
+@route.put("/update/alert/{alert_id}", tags=['alert'])
 def update_alert_channel(alert_id: int):
     return {"message": "Alert channel updated successfully"}
 
 # delete alert group
-@route.delete("/delete/alert/{alert_id}")
+@route.delete("/delete/alert/{alert_id}", tags=['alert'])
 def delete_alert_channel(alert_id: int):
     return {"message": "Alert channel deleted successfully"}
 
 # get alert group
-@route.get("/fetch/alert/{alert_id}")
+@route.get("/fetch/alert/{alert_id}", tags=['alert'])
 def get_alert_channel(alert_id: int):
     return {"message": "Alert channel fetched successfully"}
 

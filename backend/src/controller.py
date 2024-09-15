@@ -5,15 +5,17 @@ from db_util import DatabaseManager
 
 db = DatabaseManager()
 
+def get_monitors(filters):
+    sql = "select * from monitors"
+    if filters:
+        sql += " where " + " and ".join([f"{k}='{v}'" for k, v in filters.items() if v])
+    return db.query(sql)
+
 def get_monitor_by_id(monitor_id: int):
     sql = f"select * from monitors where monitor_id={monitor_id}"
     _df = db.query(sql)
     monitor = _df.to_dict('records')[0]
     return monitor
-
-def get_monitor_by_orgid(org_id: int):
-    sql = f"select * from monitors where org_id={org_id}"
-    return db.query(sql)
 
 def get_all_monitors():
     sql = "select * from monitors where is_active"

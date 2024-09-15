@@ -24,5 +24,8 @@ div.stButton button {
 """
 st.markdown(f"<style>{style}</style>", unsafe_allow_html=True)
 
-monitor_df = backend.fetch_monitors(1)
+import auth
+user_code = auth.ensure_logged_in()
+
+monitor_df = backend.fetch_monitors({'user_code': user_code})
 st.dataframe(monitor_df)
