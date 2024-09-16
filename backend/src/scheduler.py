@@ -2,7 +2,7 @@ import os
 import pytz
 import logging
 from typing import Literal
-from commons import logger
+from utils.commons import logger
 from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler

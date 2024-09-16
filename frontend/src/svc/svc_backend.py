@@ -43,3 +43,14 @@ def fetch_monitors(filters: dict):
     if len(data) == 0:
         return pd.DataFrame()
     return pd.DataFrame(data)
+
+def fetch_monitor_history(filters: dict):
+    url = f'{BACKEND_SERVICE}/fetch/recent/monitor?org_id=1&limit=10'
+    res = requests.get(url, params=filters)
+    if res.status_code != 200:
+        return []
+
+    data = res.json()['data']
+    if len(data) == 0:
+        return pd.DataFrame()
+    return pd.DataFrame(data)

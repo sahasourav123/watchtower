@@ -27,3 +27,13 @@ create table run_history (
 
 
 select * from monitors;
+
+-- select last 10 record of each monitor_id from run_history table
+WITH ranked_history AS (
+    SELECT monitor_id, outcome, ROW_NUMBER() OVER (PARTITION BY monitor_id ORDER BY created_at DESC) AS rn
+    FROM run_history
+)
+SELECT monitor_id, string_agg(outcome::text, ' ') AS outcomes
+FROM ranked_history
+WHERE rn <= 10
+group by monitor_id;

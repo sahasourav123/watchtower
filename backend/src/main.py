@@ -2,7 +2,7 @@
 Created On: July 2024
 Created By: Sourav Saha
 """
-from commons import logger
+from utils.commons import logger
 import os
 import logging
 from datetime import datetime
@@ -11,12 +11,13 @@ from typing import Literal
 from __version__ import __version__
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, Response, APIRouter, Body
+from fastapi import FastAPI, Request, Response, APIRouter
 from fastapi_redis_cache import FastApiRedisCache, cache
 
 import data_model as dm
 import scheduler as sch
 import controller as ct
+import query_engine as qe
 
 # Initialize app
 __service__ = 'the-watchtower-backend'
@@ -59,7 +60,7 @@ MONITORS
 @route.post("/create/monitor", tags=['monitor'])
 def create_monitor(monitor_type: Literal["api", "website", "database", "server", "ssl", "mq"], monitor_data: dm.MonitorModel):
     # insert into database
-    monitor_id = ct.insert_monitor({'monitor_type': monitor_type, **monitor_data.model_dump()})
+    monitor_id = qe.insert_monitor({'monitor_type': monitor_type, **monitor_data.model_dump()})
     # schedule monitoring
     sch.create_job(monitor_id, monitor_data.interval)
     return {"message": "Monitor created successfully", "monitor_id": monitor_id}
@@ -81,7 +82,7 @@ def delete_monitor(monitor_id: int):
 @route.get("/fetch/monitor", tags=['monitor'])
 @cache(expire=30)
 def get_monitors(response: Response, org_id: int = None, user_code: str = None):
-    df = ct.get_monitors({'org_id': org_id, 'user_code': user_code})
+    df = qe.get_monitors({'org_id': org_id, 'user_code': user_code})
     return {"message": "Monitor fetched successfully", "data": df.to_dict('records')}
 
 # run monitor
@@ -93,7 +94,7 @@ def run_monitor(monitor_id: int):
 # refresh monitor
 @route.get("/refresh/monitor", tags=['monitor'])
 def refresh_monitor():
-    df = ct.get_all_monitors()
+    df = qe.get_all_monitors()
     for idx, row in df.iterrows():
         sch.create_job(row['monitor_id'], row['interval'])
 
@@ -103,6 +104,13 @@ def refresh_monitor():
 @route.get("/fetch/history/monitor/{monitor_id}", tags=['monitor'])
 def get_monitor_history(monitor_id: int):
     return {"message": "Monitor history fetched successfully"}
+
+# get recent history
+@route.get("/fetch/recent/monitor", tags=['monitor'])
+def get_recent_monitor_history(org_id: int = None, limit: int = 10):
+    df = qe.fetch_recent_history(org_id, limit)
+    return {"message": "Recent monitor history fetched successfully", "data": df.to_dict('records')}
+
 
 @route.post("/import/monitor", tags=['monitor'])
 def import_monitor(org_id: int):
