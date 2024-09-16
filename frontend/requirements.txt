@@ -3,6 +3,6 @@ streamlit-oauth==0.1.13
 streamlit-cookies-manager==0.2.0
 pyjwt==2.9.0
 tabulate==0.9.0
-plotly==5.24.0
+plotly==5.24.1
 rich==13.8.0
 PyYAML==6.0.2
