@@ -22,6 +22,7 @@ with cc[0]:
     | Phone | {user['user_mobile']} |
     | Role | {user['privilege'].upper()} |
     | Status | {user['status'].upper()} |
+    | Org Codes | {', '.join([f'`{org}`' for org in user['org_codes']])} |
     | Member Since | {parser.parse(user['ts_created']).strftime('%Y-%m-%d')}
     """)
 
