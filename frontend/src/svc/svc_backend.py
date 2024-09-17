@@ -13,7 +13,7 @@ def load_service():
     res = requests.get(BACKEND_SERVICE)
     return res.json()
 
-def create_monitor(monitor_type, monitor_name, monitor_body, timeout, interval, monitor_expectation, alerts, user_code):
+def create_monitor(monitor_type, monitor_name, monitor_body, timeout, interval, monitor_expectation, alerts, user_code, org_code=None):
     url = f'{BACKEND_SERVICE}/create/monitor?monitor_type={monitor_type}'
     monitor_data = {
         'monitor_name': monitor_name,
@@ -22,7 +22,8 @@ def create_monitor(monitor_type, monitor_name, monitor_body, timeout, interval, 
         'interval': interval,
         'expectation': monitor_expectation,
         'alerts': alerts,
-        'user_code': user_code
+        'user_code': user_code,
+        'org_code': org_code
     }
     res = requests.post(url, data=json.dumps(monitor_data), headers={'Content-Type': 'application/json'})
 
@@ -45,12 +46,13 @@ def fetch_monitors(filters: dict):
     return pd.DataFrame(data)
 
 def fetch_monitor_history(filters: dict):
-    url = f'{BACKEND_SERVICE}/fetch/recent/monitor?org_id=1&limit=10'
+    url = f'{BACKEND_SERVICE}/fetch/recent/monitor'
     res = requests.get(url, params=filters)
     if res.status_code != 200:
         return []
 
     data = res.json()['data']
+    print(data)
     if len(data) == 0:
         return pd.DataFrame()
     return pd.DataFrame(data)

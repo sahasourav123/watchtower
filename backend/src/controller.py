@@ -21,8 +21,8 @@ def run_monitor_by_id(monitor_id):
 
     # store run history
     response_time_ms = (time.time() - start_time) * 1000
-    sql = f"""insert into run_history (org_id, monitor_id, outcome, response_time, response) values 
-    ({monitor['org_id']}, {monitor_id}, {outcome}, {response_time_ms}, '{response}')
+    sql = f"""insert into run_history (monitor_id, outcome, response_time, response) values 
+    ({monitor_id}, {outcome}, {response_time_ms}, '{response}')
     """
     db.insert(sql)
     return outcome

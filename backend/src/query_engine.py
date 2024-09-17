@@ -22,8 +22,8 @@ def get_all_monitors():
 
 def insert_monitor(data: dict):
     logger.info(f"Creating monitor: {data}")
-    sql = """insert into monitors (monitor_type, monitor_name, monitor_body, timeout, interval, expectation, alerts)
-    values (%(monitor_type)s, %(monitor_name)s, %(monitor_body)s, %(timeout)s, %(interval)s, %(expectation)s, %(alerts)s)
+    sql = """insert into monitors (monitor_type, monitor_name, monitor_body, timeout, interval, expectation, alerts, user_code, org_id)
+    values (%(monitor_type)s, %(monitor_name)s, %(monitor_body)s, %(timeout)s, %(interval)s, %(expectation)s, %(alerts)s, %(user_code)s, %(org_id)s)
     returning monitor_id
     """
     monitor_id = db.insert(sql, data)
@@ -42,12 +42,26 @@ def delete_monitor(monitor_id: int):
     logger.info(f"Deleted Monitor with id {monitor_id}")
 
 # fetch recent history
-def fetch_recent_history(org_id: int, limit: int = 10):
+def fetch_recent_history_by_org(org_id: int, limit: int = 10):
     sql = f"""
     WITH ranked_history AS (
         SELECT monitor_id, outcome, ROW_NUMBER() OVER (PARTITION BY monitor_id ORDER BY created_at DESC) AS rn
         FROM run_history
-        where org_id = {org_id}
+        where monitor_id in (select monitor_id from monitors where org_id = {org_id}) 
+    )
+    SELECT monitor_id, string_agg(outcome::text, ' ') AS outcomes
+    FROM ranked_history
+    WHERE rn <= {limit}
+    group by monitor_id
+    """
+    return db.query(sql)
+
+def fetch_recent_history_by_user(user_code: str, limit: int = 10):
+    sql = f"""
+    WITH ranked_history AS (
+        SELECT monitor_id, outcome, ROW_NUMBER() OVER (PARTITION BY monitor_id ORDER BY created_at DESC) AS rn
+        FROM run_history
+        where monitor_id in (select monitor_id from monitors where user_code = '{user_code}')
     )
     SELECT monitor_id, string_agg(outcome::text, ' ') AS outcomes
     FROM ranked_history

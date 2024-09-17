@@ -31,8 +31,8 @@ user_code = auth.ensure_logged_in()
 
 def _display_monitor(monitor):
     _tags = ', '.join([f"`{tag}`" for tag in monitor.get('tags')]) if monitor['tags'] else '`-`'
-    _header = f"**{monitor['is_active']} [{monitor['monitor_type'].upper()}] {monitor['monitor_name']}** | _Tags:_ {_tags} | Last 10 Run: {monitor['outcomes']}"
-    with st.expander(_header, expanded=True):
+    _header = f"**{monitor['is_active']} [{monitor['monitor_type'].upper()}] {monitor['monitor_name']}** | _Tags:_ {_tags} | Last 20 Checks: {monitor['outcomes']}"
+    with st.expander(_header):
         cc = st.columns([1, 2, 1])
         with cc[0]:
             st.text_input("Check Interval (sec)", value=monitor['interval'], key=f"{monitor['monitor_id']}_interval")
@@ -57,7 +57,7 @@ if monitor_df.empty:
     st.stop()
 
 # fetch monitor run history
-monito_history_df = backend.fetch_monitor_history({'user_code': user_code})
+monito_history_df = backend.fetch_monitor_history({'user_code': user_code, 'limit': 20})
 
 # merge monitor and history
 monitor_df = monitor_df.merge(monito_history_df, on='monitor_id', how='left')

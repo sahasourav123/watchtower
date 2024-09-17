@@ -59,5 +59,5 @@ if cc[1].button('Create Monitor', type='primary'):
     elif _url in [None, '']:
         st.warning('Enter valid cURL command')
     else:
-        res = backend.create_monitor(monitor_type, monitor_name, monitor_body, monitor_timeout, monitor_interval * 60, monitor_expectation, alerts, user_code)
+        res = backend.create_monitor(monitor_type, monitor_name, monitor_body, monitor_timeout, monitor_interval * 60, monitor_expectation, alerts, user_code, st.session_state.get('org_code'))
         st.json(res)

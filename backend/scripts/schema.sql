@@ -17,7 +17,6 @@ CREATE TABLE monitors (
 -- monitor run history
 create table run_history (
     run_id          SERIAL       PRIMARY KEY,
-    org_id          INT          NOT NULL,
     monitor_id      INT          NOT NULL,
     outcome         boolean      NOT NULL,
     response_time   INT          NOT NULL,

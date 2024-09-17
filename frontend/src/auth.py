@@ -149,14 +149,17 @@ def ensure_logged_in(required_access_level='viewer'):
         st.error('Login Required')
         st.stop()
 
+    # fetch user information
+    user = user_api.get_user(user_code)
     with st.sidebar:
         st.write(f"User Code: {user_code}")
+        _org_code_ = st.selectbox('Select Organisation', user.get('org_codes', []))
+        st.session_state['org_code'] = _org_code_
         if st.button('Logout'):
             sm.logout()
             st.rerun()
 
     # get_user_privilege
-    user = user_api.get_user(user_code)
     privilege = user.get('privilege', 'viewer')
     print(f"Logged in: {user_code} | Privilege: {privilege}")
 

@@ -12,6 +12,7 @@ from __version__ import __version__
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response, APIRouter
+from fastapi.responses import JSONResponse
 from fastapi_redis_cache import FastApiRedisCache, cache
 
 import data_model as dm
@@ -107,8 +108,14 @@ def get_monitor_history(monitor_id: int):
 
 # get recent history
 @route.get("/fetch/recent/monitor", tags=['monitor'])
-def get_recent_monitor_history(org_id: int = None, limit: int = 10):
-    df = qe.fetch_recent_history(org_id, limit)
+def get_recent_monitor_history(org_id: int = None, user_code: str = None, limit: int = 10):
+    if not org_id and not user_code:
+        return JSONResponse({"message": "Please provide either org_id or user_code"}, status_code=400)
+    elif org_id:
+        df = qe.fetch_recent_history_by_org(org_id, limit)
+    else:
+        df = qe.fetch_recent_history_by_user(user_code, limit)
+
     return {"message": "Recent monitor history fetched successfully", "data": df.to_dict('records')}
 
 
