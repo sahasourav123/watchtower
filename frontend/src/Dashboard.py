@@ -31,12 +31,19 @@ user_code = auth.ensure_logged_in()
 
 def _display_monitor(monitor):
     _tags = ', '.join([f"`{tag}`" for tag in monitor.get('tags')]) if monitor['tags'] else '`-`'
-    _header = f"**{monitor['is_active']} [{monitor['monitor_type'].upper()}] {monitor['monitor_name']}** | _Tags:_ {_tags} | Last 20 Checks: {monitor['outcomes']}"
+    title = f"**{monitor['is_active']} [{monitor['monitor_type'].upper()}] {monitor['monitor_name']}**"
+    _header = f"{title} || {monitor['outcomes']}"
     with st.expander(_header):
         cc = st.columns([1, 2, 1])
         with cc[0]:
-            st.text_input("Check Interval (sec)", value=monitor['interval'], key=f"{monitor['monitor_id']}_interval")
-            st.text_input("Timeout (sec)", value=monitor['timeout'], key=f"{monitor['monitor_id']}_timeout")
+            _interval = st.text_input("Check Interval (sec)", value=monitor['interval'], key=f"{monitor['monitor_id']}_interval")
+            if int(_interval) != monitor['interval']:
+                res = backend.update_monitor(monitor['monitor_id'], {'interval': int(_interval)})
+                st.toast("Monitor Interval updated successfully", icon='🟢')
+            _timeout = st.text_input("Timeout (sec)", value=monitor['timeout'], key=f"{monitor['monitor_id']}_timeout")
+            if int(_timeout) != monitor['timeout']:
+                res = backend.update_monitor(monitor['monitor_id'], {'timeout': int(_timeout)})
+                st.toast(f"Monitor Timeout updated successfully", icon='🟢')
 
         with cc[1]:
             st.write(f"Monitor Config")

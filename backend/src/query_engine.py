@@ -32,8 +32,14 @@ def insert_monitor(data: dict):
 
 def update_monitor(monitor_id: int, data: dict):
     logger.info(f"Updating monitor: {data}")
+    sql = f"""
+        UPDATE monitors SET
+            {','.join([f"{key}=%({key})s" for key in data.keys()])}
+        WHERE monitor_id = {monitor_id}
+        """
+    print(sql)
+    db.update(sql, data)
     logger.info(f"Updated Monitor with id {monitor_id}")
-    pass
 
 def delete_monitor(monitor_id: int):
     logger.info(f"Deleting monitor: #{monitor_id}")

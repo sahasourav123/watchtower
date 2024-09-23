@@ -71,6 +71,7 @@ def create_monitor(monitor_type: Literal["api", "website", "database", "server",
 def update_monitor(monitor_id: int, monitor_data: dm.MonitorModel):
     if monitor_data.interval:
         sch.create_job(monitor_id, monitor_data.interval)
+    qe.update_monitor(monitor_id, monitor_data.model_dump(exclude_none=True))
     return {"message": "Monitor updated successfully"}
 
 # delete monitor

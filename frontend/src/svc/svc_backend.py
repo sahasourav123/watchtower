@@ -33,26 +33,29 @@ def create_monitor(monitor_type, monitor_name, monitor_body, timeout, interval, 
 
     return res.json()
 
+def update_monitor(monitor_id, monitor_data):
+    url = f'{BACKEND_SERVICE}/update/monitor/{monitor_id}'
+    res = requests.put(url, data=json.dumps(monitor_data), headers={'Content-Type': 'application/json'})
+
+    # clear cache if successful
+    if 200 >= res.status_code >= 201:
+        fetch_monitors.clear()
+
+    return res.json()
+
+def _fetch_api_data(url, params) -> pd.DataFrame:
+    res = requests.get(url, params=params)
+    if res.status_code != 200:
+        return pd.DataFrame()
+
+    data = res.json()['data']
+    if len(data) == 0:
+        return pd.DataFrame()
+    return pd.DataFrame(data)
+
 @st.cache_data(ttl=300)
 def fetch_monitors(filters: dict):
-    url = f'{BACKEND_SERVICE}/fetch/monitor'
-    res = requests.get(url, params=filters)
-    if res.status_code != 200:
-        return []
-
-    data = res.json()['data']
-    if len(data) == 0:
-        return pd.DataFrame()
-    return pd.DataFrame(data)
+    return _fetch_api_data(url=f'{BACKEND_SERVICE}/fetch/monitor', params=filters)
 
 def fetch_monitor_history(filters: dict):
-    url = f'{BACKEND_SERVICE}/fetch/recent/monitor'
-    res = requests.get(url, params=filters)
-    if res.status_code != 200:
-        return []
-
-    data = res.json()['data']
-    print(data)
-    if len(data) == 0:
-        return pd.DataFrame()
-    return pd.DataFrame(data)
+    return _fetch_api_data(url=f'{BACKEND_SERVICE}/fetch/recent/monitor', params=filters)
