@@ -160,25 +160,27 @@ def delete_statuspage(page_id: int):
 ALERTS
 ================================================
 """
+# fetch alert group
+@route.get("/fetch/channel", tags=['alert'])
+def fetch_alert_channel(user_code: str):
+    channel_df = qe.get_alert_channel(user_code)
+    return {"message": "Alert channel updated successfully", "data": channel_df.to_dict('records')}
+
 # create alert group
-@route.post("/create/alert", tags=['alert'])
-def create_alert_channel():
-    return {"message": "Alert channel created successfully"}
+@route.post("/create/channel", tags=['alert'])
+def create_alert_channel(data: dm.AlertChannelModel):
+    channel_id = qe.insert_alert_channel(data.model_dump())
+    return {'channel_id': channel_id, "message": "Alert channel created successfully"}
 
 # update alert group
-@route.put("/update/alert/{alert_id}", tags=['alert'])
-def update_alert_channel(alert_id: int):
+@route.put("/update/channel/{channel}", tags=['alert'])
+def update_alert_channel(channel_id: int):
     return {"message": "Alert channel updated successfully"}
 
 # delete alert group
-@route.delete("/delete/alert/{alert_id}", tags=['alert'])
-def delete_alert_channel(alert_id: int):
+@route.delete("/delete/channel/{alert_id}", tags=['alert'])
+def delete_alert_channel(channel_id: int):
     return {"message": "Alert channel deleted successfully"}
-
-# get alert group
-@route.get("/fetch/alert/{alert_id}", tags=['alert'])
-def get_alert_channel(alert_id: int):
-    return {"message": "Alert channel fetched successfully"}
 
 
 # include routes in app

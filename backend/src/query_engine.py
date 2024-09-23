@@ -1,3 +1,5 @@
+import pandas as pd
+
 from utils.commons import logger
 from utils.db_util import DatabaseManager
 
@@ -37,7 +39,6 @@ def update_monitor(monitor_id: int, data: dict):
             {','.join([f"{key}=%({key})s" for key in data.keys()])}
         WHERE monitor_id = {monitor_id}
         """
-    print(sql)
     db.update(sql, data)
     logger.info(f"Updated Monitor with id {monitor_id}")
 
@@ -75,3 +76,35 @@ def fetch_recent_history_by_user(user_code: str, limit: int = 10):
     group by monitor_id
     """
     return db.query(sql)
+
+
+"""
+================================================
+ALERT CHANNEL
+================================================
+"""
+def get_alert_channel(user_code) -> pd.DataFrame:
+    sql = f"select * from alert_channel where user_code = '{user_code}'"
+    return db.query(sql)
+
+def insert_alert_channel(data) -> int:
+    sql = """insert into alert_channel (channel_name, channel_type, recipient, remarks, user_code)
+    values (%(channel_name)s, %(channel_type)s, %(recipient)s, %(remarks)s, %(user_code)s)
+    returning channel_id
+    """
+    channel_id = db.insert(sql, data)
+    logger.debug(f"{data['user_code']} | ALERT #{channel_id} inserted into database")
+    return channel_id
+
+def update_alert_channel(channel_id, data) -> int:
+    data['channel_id'] = channel_id
+    sql, _data = db.build_update_query(table_name='sc_alert_channel', data=data, primary_key_name='channel_id')
+    r = db.update(sql, _data)
+    logger.debug(f"ALERT #{channel_id} updated in database | {data}")
+    return r
+
+def delete_alert_channel(channel_id):
+    sql = f"""delete from alert_channel where channel_id = {channel_id}"""
+    r = db.query(sql)
+    logger.debug(f"ALERT #{channel_id} deleted from database")
+    return r

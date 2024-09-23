@@ -24,6 +24,19 @@ create table run_history (
     created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
+-- alert channel
+CREATE TABLE IF NOT EXISTS ALERT_CHANNEL (
+    CHANNEL_ID          SERIAL      PRIMARY KEY,
+    CHANNEL_NAME        TEXT,
+    CHANNEL_TYPE        TEXT,
+    CHANNEL_BODY        TEXT,
+    IS_ACTIVE           BOOL DEFAULT true,      -- true / false
+    REMARKS             TEXT,
+    USER_CODE           TEXT,
+    org_id              INT,
+    created_at          TIMESTAMP DEFAULT now()
+);
+
 
 select * from monitors;
 

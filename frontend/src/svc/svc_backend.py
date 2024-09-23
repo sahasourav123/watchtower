@@ -59,3 +59,20 @@ def fetch_monitors(filters: dict):
 
 def fetch_monitor_history(filters: dict):
     return _fetch_api_data(url=f'{BACKEND_SERVICE}/fetch/recent/monitor', params=filters)
+
+# ==============================================================
+# ALERTS
+# ==============================================================
+def create_alert_channel(user_code, data):
+    url = f"{BACKEND_SERVICE}/create/channel?"
+    res = requests.post(url, data=json.dumps({'user_code': user_code, **data}), headers={'Content-Type': 'application/json'})
+
+    # clear cache if successful
+    if 200 >= res.status_code >= 201:
+        get_alert_channels.clear()
+
+    return res.json()
+
+@st.cache_data(ttl=300)
+def get_alert_channels(user_code):
+    return _fetch_api_data(f"{BACKEND_SERVICE}/fetch/channel", params={'user_code': user_code})
