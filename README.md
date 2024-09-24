@@ -1,4 +1,5 @@
 # The Watchtower
+![watchtower.jpeg](frontend/assets/watchtower.jpeg)
 This Project is about an Uptime Monitoring system with Alerting and Status Page. 
 This can be used for Web & Infrastructure uptime monitoring. It is built using Streamlit as frontend and FastAPI+Postgres as backend. **All Open Source.**
 

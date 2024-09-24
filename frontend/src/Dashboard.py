@@ -13,6 +13,7 @@ from __version__ import __version__
 # Start Application
 # ======================================================================
 st.set_page_config(layout='wide', page_title='The Watchtower', initial_sidebar_state='expanded')
+st.image('assets/watchtower.jpeg')
 st.title(f'The Watchtower')
 logger.info("initializing app")
 svc = backend.load_service()
