@@ -38,3 +38,9 @@ def get_user(user_code):
     logger.debug(f"fetching: {url}")
     res = requests.get(url).json()
     return res.get('data')
+
+def log_signin(data):
+    url = f"{USER_API_SERVICE}/log/signin"
+    res = requests.post(url, data=json.dumps(data))
+    logger.info("Signin Event logged")
+    return res

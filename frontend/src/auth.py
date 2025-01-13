@@ -109,6 +109,13 @@ class SessionManager:
             # user_email = logged_in_user["email"]
             user_code = self._get_user_code(logged_in_user)
 
+            # signin log
+            user_api.log_signin({
+                "user_code": user_code,
+                "signin_provider": logged_in_user["provider"],
+                "signin_product": "screener"
+            })
+
             st.session_state['username'] = user_code
             self.cookie_model.set_cookie()
             st.session_state['authentication_status'] = True
