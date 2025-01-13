@@ -49,3 +49,48 @@ SELECT monitor_id, string_agg(outcome::text, ' ') AS outcomes
 FROM ranked_history
 WHERE rn <= 10
 group by monitor_id;
+
+-- calculate time diff between two consecutive timestamp for each monitor_id
+select *, created_at - lag(created_at) over (partition by monitor_id order by created_at) as time_diff
+from run_history
+order by created_at;
+
+
+SELECT create_hypertable('run_history', 'created_at', migrate_data => true);
+
+DROP MATERIALIZED VIEW IF EXISTS mv_uptime;
+
+CREATE MATERIALIZED VIEW mv_uptime as
+select * from vw_uptime;
+
+REFRESH MATERIALIZED VIEW mv_uptime;
+
+-- calculate daily (in minutes) uptime by date and monitor_id
+-- create or replace view vw_uptime as
+with history as (
+    select *, date_trunc('day', created_at) as date,
+           created_at - lag(created_at) over (partition by monitor_id order by created_at) as time_diff
+    from run_history
+--     order by created_at desc
+), downtime as (
+    select monitor_id, date, sum(extract(epoch from time_diff) / 60) as downtime_in_minutes
+    from history
+    where not outcome
+    group by monitor_id, date
+--     order by date desc
+), moitor_agg as (
+    select monitor_id, date, count(*) as check_count
+    from history
+    group by monitor_id, date
+--     order by date desc
+)
+select m.monitor_id, m.monitor_name, moitor_agg.date as date, moitor_agg.check_count,
+       coalesce(round(d.downtime_in_minutes, 2), 0) as downtime_in_minutes,
+       round(100 * (1440 - coalesce(d.downtime_in_minutes, 0)) / 1440, 2) as uptime_pct
+from moitor_agg
+left join monitors m on m.monitor_id = moitor_agg.monitor_id
+left join downtime d on d.monitor_id = moitor_agg.monitor_id and d.date = moitor_agg.date
+order by date desc;
+
+-- delete data older than 30 days
+-- delete from run_history where created_at < now() - interval '30 days';
