@@ -60,6 +60,10 @@ def fetch_monitors(filters: dict):
 def fetch_monitor_history(filters: dict):
     return _fetch_api_data(url=f'{BACKEND_SERVICE}/fetch/recent/monitor', params=filters)
 
+@st.cache_data(ttl=300)
+def fetch_uptime_history(user_code, day_limit):
+    return _fetch_api_data(url=f'{BACKEND_SERVICE}/fetch/uptime', params={'user_code': user_code, 'day_limit': day_limit})
+
 # ==============================================================
 # ALERTS
 # ==============================================================
