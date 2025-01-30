@@ -77,6 +77,16 @@ def fetch_recent_history_by_user(user_code: str, limit: int = 10):
     """
     return db.query(sql)
 
+def daily_uptime_history(user_code: str, day_limit: int):
+    sql = f"""
+    select * 
+    from vw_uptime_summary 
+    where monitor_id in (select monitor_id from monitors where user_code = '{user_code}')
+    and date >= current_date - interval '{day_limit} days'
+    order by date, monitor_id
+    """
+    return db.query(sql)
+
 
 """
 ================================================

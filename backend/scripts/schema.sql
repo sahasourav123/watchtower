@@ -58,39 +58,58 @@ order by created_at;
 
 SELECT create_hypertable('run_history', 'created_at', migrate_data => true);
 
+-- create additional Index
+CREATE INDEX run_history_monitor_id_created_at_index on run_history (monitor_id, created_at);
+
+-- create Retention Policy
+select remove_retention_policy('run_history');
+SELECT add_retention_policy('run_history', INTERVAL '3 days');
+
 DROP MATERIALIZED VIEW IF EXISTS mv_uptime;
 
-CREATE MATERIALIZED VIEW mv_uptime as
-select * from vw_uptime;
+CREATE MATERIALIZED VIEW mv_uptime
+WITH (timescaledb.continuous) AS
+select monitor_id,
+       time_bucket('1 day', created_at) AS date,
+--        date_trunc('day', created_at) as date,
+       count(*) as total,
+       sum(case when outcome = true then 1 else 0 end)::numeric as success,
+       round(avg(response_time)::numeric, 2) as avg_rt,
+       -- 90 % response time
+       round((percentile_cont(0.9) within group (order by response_time))::numeric, 2) as p90_rt,
+      sum(case when outcome = false then 1 else 0 end)::numeric as fail_count,
+      -- total check time
+      max(created_at) - min(created_at) total_check_time
+from run_history
+group by monitor_id, date;
 
-REFRESH MATERIALIZED VIEW mv_uptime;
+select remove_continuous_aggregate_policy('mv_uptime');
+
+SELECT add_continuous_aggregate_policy('mv_uptime',
+    start_offset => INTERVAL '1 day',
+    end_offset => NULL,
+    schedule_interval => INTERVAL '1 minute'
+);
+
+select * from mv_uptime
+order by date desc;
+
 
 -- calculate daily (in minutes) uptime by date and monitor_id
--- create or replace view vw_uptime as
-with history as (
-    select *, date_trunc('day', created_at) as date,
-           created_at - lag(created_at) over (partition by monitor_id order by created_at) as time_diff
-    from run_history
---     order by created_at desc
-), downtime as (
-    select monitor_id, date, sum(extract(epoch from time_diff) / 60) as downtime_in_minutes
-    from history
-    where not outcome
-    group by monitor_id, date
---     order by date desc
-), moitor_agg as (
-    select monitor_id, date, count(*) as check_count
-    from history
-    group by monitor_id, date
---     order by date desc
+create or replace view vw_uptime_summary as
+with agg_stats as (
+    select monitor_id, date(date) as date,
+        round((success::numeric/total)*100, 2) as uptime_pct,
+        round(((fail_count/total) * extract(epoch from total_check_time) / 60), 2) as downtime_in_minutes,
+        fail_count,
+        avg_rt, p90_rt
+    from mv_uptime
 )
-select m.monitor_id, m.monitor_name, moitor_agg.date as date, moitor_agg.check_count,
-       coalesce(round(d.downtime_in_minutes, 2), 0) as downtime_in_minutes,
-       round(100 * (1440 - coalesce(d.downtime_in_minutes, 0)) / 1440, 2) as uptime_pct
-from moitor_agg
-left join monitors m on m.monitor_id = moitor_agg.monitor_id
-left join downtime d on d.monitor_id = moitor_agg.monitor_id and d.date = moitor_agg.date
-order by date desc;
+select agg_stats.*, m.monitor_name
+from agg_stats
+left join monitors m on m.monitor_id = agg_stats.monitor_id;
+
+--order by date desc, monitor_id;
 
 -- delete data older than 30 days
 -- delete from run_history where created_at < now() - interval '30 days';

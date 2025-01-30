@@ -103,9 +103,10 @@ def refresh_monitor():
     return {"message": "Monitor refreshed successfully"}
 
 # get monitoring history
-@route.get("/fetch/history/monitor/{monitor_id}", tags=['monitor'])
-def get_monitor_history(monitor_id: int):
-    return {"message": "Monitor history fetched successfully"}
+@route.get("/fetch/uptime", tags=['monitor'])
+def get_monitor_history(user_code: str, day_limit: int = 90):
+    df = qe.daily_uptime_history(user_code, day_limit)
+    return {"status": "success", 'count': df.shape[0], "data": df.to_dict('records')}
 
 # get recent history
 @route.get("/fetch/recent/monitor", tags=['monitor'])
