@@ -149,6 +149,10 @@ class SessionManager:
 
 def ensure_logged_in(required_access_level='viewer'):
     print(f'Ensure Logged In with access level: {required_access_level}')
+    if str(os.environ.get("AUTH_ENABLED")).lower() == 'false':      # noqa
+        st.session_state['org_code'] = []
+        return os.environ.get('DEFAULT_USER')
+
     sm = SessionManager()
     user_code = sm.login()
 

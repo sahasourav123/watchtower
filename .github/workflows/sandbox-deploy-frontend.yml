@@ -33,5 +33,5 @@ jobs:
       run: docker compose build frontend
 
     - name: Start Service
-      run: docker compose -p project-watchtower up -d frontend
+      run: AUTH_ENABLED=true docker compose -p project-watchtower up -d frontend
 
