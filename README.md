@@ -13,32 +13,33 @@ Project is live for Public use at [The Watchtower](https://watchtower.finanssure
 5. **Manageable** - You can manage configs through UI, API and Config as Code.
 6. **Cloud Agnostic** - Run it on your own server or any cloud
 7. **Extensible** - You can add plugins & connector for different services
-8. **Enterprise Ready (Upcoming)** 
+8. **Status Page (Backlog)** - Public & Private status page
+9. **Enterprise Ready (Backlog)** 
    1. You can use it for your business with multi-tenancy support
    2. Support Configuration as Code
    3. Private Status Page
    4. Proxy & IP Whitelisting
 
 # Supported Connectors
-| Type           | Target                     | Protocols            |
-|----------------|----------------------------|----------------------|
-| APIs           | REST, GraphQL, SOAP        |                      |
-| Websockets     | _(Upcoming)_               |                      |
-| Websites       | Public / Private           | HTTP, HTTPS          |
-|                | Domain Expiry _(Upcoming)_ |                      |
-| Database       | Postgres, MongoDB, Redis   | _(Extensible)_       |
-| Servers        | Remote Servers             | SSH, RDP             |
-|                | Email _(Upcoming)_         | SMTP, POP3, IMAP     |
-|                | DNS _(Upcoming)_           | DNS, DNSSEC          |
-|                | File Servers _(Upcoming)_  | FTP, SFTP            |
-| Certificates   | _(Upcoming)_               | SSL, TLS             |
-| Message Queues | _(Upcoming)_               | RabbitMQ, Kafka, SQS |
+| Type           | Target                    | Protocols            |
+|----------------|---------------------------|----------------------|
+| APIs           | REST, GraphQL, SOAP       |                      |
+| Websockets     | _(Upcoming)_              |                      |
+| Websites       | Public / Private          | HTTP, HTTPS          |
+|                | Domain Expiry             |                      |
+| Database       | Postgres, MongoDB, Redis  | _(Extensible)_       |
+| Servers        | Remote Servers            | SSH, RDP             |
+|                | Email _(Upcoming)_        | SMTP, POP3, IMAP     |
+|                | DNS _(Upcoming)_          | DNS, DNSSEC          |
+|                | File Servers _(Upcoming)_ | FTP, SFTP            |
+| Certificates   | Domains                   | SSL, TLS             |
+| Message Queues | _(Upcoming)_              | RabbitMQ, Kafka, SQS |
 
 
 # Basic Features
-1. [ ] Create monitor
+1. [x] Create monitor
 2. [ ] View & Manage monitors
-3. [ ] View status page 
+3. [x] View Uptime History 
 4. [ ] View history & connection statistics
 5. [ ] Public / Private status page
 6. [ ] Create Alert Rules
@@ -47,7 +48,7 @@ Project is live for Public use at [The Watchtower](https://watchtower.finanssure
 9. [ ] Manage configs through API
 10. [ ] Manage configs through CLI / CI Pipeline
 
-# Areas where contribution is appreciated
+# Your contribution is appreciated
 1. Scaling the system with container orchestration for public use
 2. Adding more connectors for different services
 3. Adding more alerting channels
