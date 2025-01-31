@@ -9,7 +9,6 @@ import whois
 import certifi
 import requests
 
-from monitors import servers
 
 def check_status(domain_name: str) -> tuple[bool, int]:
     try:

@@ -10,7 +10,7 @@ def check_status(monitor_body: dict) -> tuple[bool, int]:
             monitor_body.get('method'), monitor_body.get('url'),
             headers=monitor_body.get('headers'),
             params=monitor_body.get('params'),
-            data=monitor_body.get('body'),
+            json=monitor_body.get('body'),
             verify=False,
             timeout=monitor_body.get('timeout', 10)
         )

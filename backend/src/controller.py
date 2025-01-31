@@ -1,18 +1,36 @@
+import os
+import re
 import time
+import yaml
 from utils.commons import logger
 import query_engine as qe
 from utils.db_util import DatabaseManager
 from monitors import apis, sites, servers, databases
 
 db = DatabaseManager()
+with open('config.yaml') as config_file:
+    config = yaml.safe_load(config_file)
 
 def run_monitor(monitor_type: str, monitor_body: dict) -> dict:
-    if 'body' not in monitor_body:
+    if (monitor_type == 'api' and 'url' not in monitor_body) or 'body' not in monitor_body:
         return {
             'is_success': False,
             'response_code': None,
-            'response_time_ms': None
+            'response_time_ms': None,
+            'message': 'Invalid monitor body'
         }
+
+    # SSRF
+    blacklist = config.get('blacklist', []) + os.getenv('BLACKLIST_HOSTS', '').split(',')
+    target = monitor_body.get('url') or monitor_body.get('body')
+    for item in blacklist:
+        if bool(re.search(item, target)):
+            return {
+                'is_success': False,
+                'response_code': None,
+                'response_time_ms': None,
+                'message': 'Target Blacklisted'
+            }
 
     start_time = time.time()
     try:
