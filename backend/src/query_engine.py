@@ -5,6 +5,17 @@ from utils.db_util import DatabaseManager
 
 db = DatabaseManager()
 
+def monitor_stats(user_code: str):
+    sql = f"""
+    select monitor_type,
+        count(*) as total_monitors,
+        sum(is_active::int) as active_monitors
+    from monitors
+    where user_code = '{user_code}'
+    group by monitor_type
+    """
+    return db.query(sql)
+
 def get_monitors(filters):
     sql = "select * from monitors"
     if filters:

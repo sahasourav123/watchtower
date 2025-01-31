@@ -1,11 +1,21 @@
 from typing import Literal, Optional
 from pydantic import BaseModel
+from enum import Enum
 
-class MonitorModel(BaseModel):
+# Monitor Types
+class MonitorTypes(str, Enum):
+    API = 'api'
+    WEBSITE = 'website'
+    DOMAIN = 'domain'
+    SERVER = 'server'
+    SSL = 'ssl'
+    DATABASE = 'database'
+
+class MonitorModel(BaseModel, use_enum_values=True):
     org_id: Optional[int] = None
     user_code: Optional[str] = None
     monitor_name: Optional[str] = None
-    monitor_type: Literal['api', 'website', 'server'] = None
+    monitor_type: MonitorTypes = None
     monitor_body: Optional[dict] = None
     timeout: Optional[int] = None
     interval: Optional[int] = None
@@ -15,7 +25,7 @@ class MonitorModel(BaseModel):
 
 class AlertChannelModel(BaseModel):
     channel_name: Optional[str] = None
-    channel_type: Literal['email', 'slack', 'webhook'] = None
+    channel_type: Literal['email', 'telegram', 'slack', 'webhook'] = None
     recipient: Optional[str] = None
     user_code: Optional[str] = None
     org_id: Optional[int] = None
