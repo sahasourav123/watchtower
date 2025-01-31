@@ -6,12 +6,11 @@ from utils.commons import logger
 import os
 import logging
 from datetime import datetime
-from typing import Literal
 
 from __version__ import __version__
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, Response, APIRouter
+from fastapi import FastAPI, Request, Response, APIRouter, Body
 from fastapi.responses import JSONResponse
 from fastapi_redis_cache import FastApiRedisCache, cache
 
@@ -59,7 +58,7 @@ MONITORS
 """
 # create api monitor
 @route.post("/create/monitor", tags=['monitor'])
-def create_monitor(monitor_type: Literal["api", "website", "database", "server", "ssl", "mq"], monitor_data: dm.MonitorModel):
+def create_monitor(monitor_type: dm.MonitorTypes, monitor_data: dm.MonitorModel):
     # insert into database
     monitor_id = qe.insert_monitor({'monitor_type': monitor_type, **monitor_data.model_dump()})
     # schedule monitoring
@@ -100,7 +99,7 @@ def refresh_monitor():
     for idx, row in df.iterrows():
         sch.create_job(row['monitor_id'], row['interval'])
 
-    return {"message": "Monitor refreshed successfully"}
+    return {"status": "success", "count": df.shape[0]}
 
 # get monitoring history
 @route.get("/fetch/uptime", tags=['monitor'])
@@ -118,7 +117,20 @@ def get_recent_monitor_history(org_id: int = None, user_code: str = None, limit:
     else:
         df = qe.fetch_recent_history_by_user(user_code, limit)
 
-    return {"message": "Recent monitor history fetched successfully", "data": df.to_dict('records')}
+    return {"status": "success", "data": df.to_dict('records')}
+
+# monitor stats
+@route.get("/stats", tags=['monitor'])
+def get_monitor_stats(user_code: str):
+    df = qe.monitor_stats(user_code)
+    return {"status": "success", "data": df.to_dict('records')}
+
+
+# check status
+@route.get("/check", tags=['monitor'])
+def check_status(monitor_type: dm.MonitorTypes, monitor_body: dict = Body(...)):
+    result = ct.run_monitor(monitor_type, monitor_body)
+    return result
 
 
 @route.post("/import/monitor", tags=['monitor'])

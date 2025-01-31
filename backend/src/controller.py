@@ -1,17 +1,34 @@
 import time
-import requests
 from utils.commons import logger
 import query_engine as qe
 from utils.db_util import DatabaseManager
+from monitors import apis, sites, servers, databases
 
 db = DatabaseManager()
 
-def run_monitor_by_id(monitor_id):
-    monitor = qe.get_monitor_by_id(monitor_id)
+def run_monitor(monitor_type: str, monitor_body: dict) -> dict:
+    if 'body' not in monitor_body:
+        return {
+            'is_success': False,
+            'response_code': None,
+            'response_time_ms': None
+        }
+
     start_time = time.time()
     try:
-        if monitor['monitor_type'] == 'api':
-            outcome, response = run_api_monitor(monitor['monitor_body'], monitor.get('expectation'))
+        if monitor_type == 'api':
+            outcome, response = apis.check_status(monitor_body)
+        elif monitor_type == 'website':
+            outcome, response = sites.check_status(monitor_body['body'])
+        elif monitor_type == 'domain':
+            outcome, response = sites.check_domain_expiry(monitor_body['body'])
+        elif monitor_type == 'server':
+            host, port = monitor_body['body'].split(':')
+            outcome, response = servers.check_status(host, int(port))
+        elif monitor_type == 'database':
+            outcome, response = databases.check_status(monitor_body['body'])
+        elif monitor_type == 'ssl':
+            outcome, response = sites.check_certificate_expiry(monitor_body['body'])
         else:
             outcome, response = False, 0
 
@@ -19,46 +36,34 @@ def run_monitor_by_id(monitor_id):
         logger.error(f"Error running monitor: {e}")
         outcome, response = False, -10
 
-    # store run history
     response_time_ms = (time.time() - start_time) * 1000
-    sql = f"""insert into run_history (monitor_id, outcome, response_time, response) values 
-    ({monitor_id}, {outcome}, {response_time_ms}, '{response}')
+    return {
+        'is_success': outcome,
+        'response_code': response,
+        'response_time_ms': response_time_ms
+    }
+
+
+def run_monitor_by_id(monitor_id):
+    monitor = qe.get_monitor_by_id(monitor_id)
+    monitor_type = monitor['monitor_type']
+    result = run_monitor(monitor_type, monitor['monitor_body'])
+    outcome = result['is_success']
+
+    if monitor_type == 'api':
+        expectation = monitor.get('expectation')
+        if expectation:
+            response_code_list = expectation.get('response_codes')
+            is_allow_list = expectation.get('is_allow_list')
+            outcome = (is_allow_list and result['response_code'] in response_code_list) or (not is_allow_list and result['response_code'] not in response_code_list)
+
+        else:
+            outcome = 200 <= result['response_code'] < 300
+
+    # store run history
+    sql = f"""insert into run_history (monitor_id, outcome, response_time, response) 
+    values ({monitor_id}, {outcome}, {result['response_time_ms']}, {result['response_code']})
     """
     db.insert(sql)
     return outcome
 
-def run_api_monitor(monitor_body: dict, expectation: dict) -> tuple[bool, int]:
-    try:
-        res = requests.request(
-            monitor_body.get('method'), monitor_body.get('url'),
-            headers=monitor_body.get('headers'),
-            params=monitor_body.get('params'),
-            data=monitor_body.get('body'),
-            verify=False,
-            timeout=monitor_body.get('timeout', 10)
-        )
-
-    # handle name resolution error
-    except requests.exceptions.ConnectionError as e:
-        # logger.error(f"Connection Error: {e}")
-        return False, -1
-
-    # handle timeout error
-    except requests.exceptions.Timeout as e:
-        # logger.error(f"Timeout Error: {e}")
-        return False, -2
-
-    # handle other exceptions
-    except Exception as e:
-        # logger.error(f"Error: {e}")
-        return False, -10
-
-    if expectation:
-        response_code_list = expectation.get('response_codes')
-        is_allow_list = expectation.get('is_allow_list')
-        outcome = (is_allow_list and res.status_code in response_code_list) or (not is_allow_list and res.status_code not in response_code_list)
-
-    else:
-        outcome = 200 <= res.status_code < 300
-
-    return outcome, res.status_code
