@@ -7,11 +7,33 @@ import socket
 from datetime import datetime
 import whois
 import certifi
+import requests
 
 from monitors import servers
 
 def check_status(domain_name: str) -> tuple[bool, int]:
-    return servers.check_status('localhost', 80)
+    try:
+        res = requests.get(
+            domain_name,
+            verify=False,
+            timeout=10
+        )
+        return True, res.status_code
+
+    # handle name resolution error
+    except requests.exceptions.ConnectionError as e:
+        # logger.error(f"Connection Error: {e}")
+        return False, -1
+
+    # handle timeout error
+    except requests.exceptions.Timeout as e:
+        # logger.error(f"Timeout Error: {e}")
+        return False, -2
+
+    # handle other exceptions
+    except Exception as e:
+        # logger.error(f"Error: {e}")
+        return False, -10
 
 def check_domain_expiry(domain_name: str) -> tuple[bool, int]:
     try:

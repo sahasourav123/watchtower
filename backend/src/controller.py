@@ -36,7 +36,7 @@ def run_monitor(monitor_type: str, monitor_body: dict) -> dict:
         logger.error(f"Error running monitor: {e}")
         outcome, response = False, -10
 
-    response_time_ms = (time.time() - start_time) * 1000
+    response_time_ms = round((time.time() - start_time) * 1000, 2)
     return {
         'is_success': outcome,
         'response_code': response,
