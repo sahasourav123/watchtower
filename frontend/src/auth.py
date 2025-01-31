@@ -156,7 +156,9 @@ def ensure_logged_in(required_access_level='viewer'):
     sm = SessionManager()
     user_code = sm.login()
 
-    if not user_code:
+    if not user_code and required_access_level == 'guest':
+        return os.environ.get('DEFAULT_USER', 'guest')
+    elif not user_code:
         st.error('Login Required')
         st.stop()
 

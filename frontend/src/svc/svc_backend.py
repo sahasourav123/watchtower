@@ -13,6 +13,17 @@ def load_service():
     res = requests.get(BACKEND_SERVICE)
     return res.json()
 
+def check_monitor(monitor_type: str, monitor_body):
+    url = f"{BACKEND_SERVICE}/check?monitor_type={monitor_type}"
+    if isinstance(monitor_body, str):
+        monitor_body = {'body': monitor_body}
+    res = requests.get(url, json=monitor_body)
+    return res.json()
+
+def get_stats(user_code: str):
+    res = requests.get(f"{BACKEND_SERVICE}/stats?user_code={user_code}")
+    return res.json()['data']
+
 def create_monitor(monitor_type, monitor_name, monitor_body, timeout, interval, monitor_expectation, alerts, user_code, org_code=None):
     url = f'{BACKEND_SERVICE}/create/monitor?monitor_type={monitor_type}'
     monitor_data = {

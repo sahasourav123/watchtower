@@ -23,3 +23,11 @@ div.stButton button {
 }
 """
 st.markdown(f"<style>{style}</style>", unsafe_allow_html=True)
+
+# ======================================================================
+import auth
+user_code = auth.ensure_logged_in('guest')
+
+if user_code:
+    stats = backend.get_stats(user_code)
+    st.dataframe(stats, column_config={'monitor_type': 'Type', 'total_monitors': 'Total', 'active_monitors': 'Active'})
