@@ -2,6 +2,7 @@
 Created On: July 2024
 Created By: Sourav Saha
 """
+import os
 from utils import logger
 import streamlit as st
 from svc import svc_backend as backend
@@ -23,6 +24,31 @@ div.stButton button {
 }
 """
 st.markdown(f"<style>{style}</style>", unsafe_allow_html=True)
+
+# ======================================================================
+# Google Analytics Tracking
+# ======================================================================
+env = os.getenv('ENV', 'development')
+if env == 'production':
+    tracking_script = f"""
+        <!-- Google Analytics (screener-web) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id={os.getenv('GTAG')}"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){{dataLayer.push(arguments);}}
+          gtag('js', new Date());
+        
+          gtag('config', '{os.getenv('GTAG')}');
+        </script>
+        """
+
+    html = os.path.dirname(st.__file__)+'/static/index.html'
+    with open(html, 'r') as f:
+        data = f.read()
+        if 'Google Analytics' not in data:
+            with open(html, 'w') as ff:
+                modified_html = data.replace('<head>', f"<head> \n {tracking_script}")
+                ff.write(modified_html)
 
 # ======================================================================
 import auth
