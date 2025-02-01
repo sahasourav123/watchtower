@@ -6,6 +6,7 @@ from utils.commons import logger
 import os
 import logging
 from datetime import datetime
+import json
 
 from __version__ import __version__
 
@@ -59,32 +60,34 @@ MONITORS
 # create api monitor
 @route.post("/create/monitor", tags=['monitor'])
 def create_monitor(monitor_type: dm.MonitorTypes, monitor_data: dm.MonitorModel):
+    data = {**monitor_data.model_dump(), 'monitor_type': monitor_type.value}
     # insert into database
-    monitor_id = qe.insert_monitor({'monitor_type': monitor_type, **monitor_data.model_dump()})
+    monitor_id = qe.insert_monitor(data)
     # schedule monitoring
-    sch.create_job(monitor_id, monitor_data.interval)
-    return {"message": "Monitor created successfully", "monitor_id": monitor_id}
+    sch.create_job(monitor_id, monitor_data.interval, monitor_data.interval_unit, monitor_data.expiry)
+    return {"status": "success", "monitor_id": monitor_id}
 
 # update monitor
 @route.put("/update/monitor/{monitor_id}", tags=['monitor'])
 def update_monitor(monitor_id: int, monitor_data: dm.MonitorModel):
     if monitor_data.interval:
-        sch.create_job(monitor_id, monitor_data.interval)
+        sch.create_job(monitor_id, monitor_data.interval, monitor_data.interval_unit, monitor_data.expiry)
     qe.update_monitor(monitor_id, monitor_data.model_dump(exclude_none=True))
-    return {"message": "Monitor updated successfully"}
+    return {"status": "success"}
 
 # delete monitor
 @route.delete("/delete/monitor/{monitor_id}", tags=['monitor'])
 def delete_monitor(monitor_id: int):
     sch.scheduler.remove_job(f"monitor#{monitor_id}")
-    return {"message": "Monitor deleted successfully"}
+    return {"status": "success"}
 
 # get monitor(s)
 @route.get("/fetch/monitor", tags=['monitor'])
-@cache(expire=30)
+# @cache(expire=30)
 def get_monitors(response: Response, org_id: int = None, user_code: str = None):
     df = qe.get_monitors({'org_id': org_id, 'user_code': user_code})
-    return {"message": "Monitor fetched successfully", "data": df.to_dict('records')}
+    return {"status": "success", "data": json.loads(df.to_json(orient='records'))}
+
 
 # run monitor
 @route.get("/run/monitor/{monitor_id}", tags=['monitor'])
@@ -97,7 +100,7 @@ def run_monitor(monitor_id: int):
 def refresh_monitor():
     df = qe.get_all_monitors()
     for idx, row in df.iterrows():
-        sch.create_job(row['monitor_id'], row['interval'])
+        sch.create_job(row['monitor_id'], row['interval'], row['interval_unit'], row['expiry'])
 
     return {"status": "success", "count": df.shape[0]}
 

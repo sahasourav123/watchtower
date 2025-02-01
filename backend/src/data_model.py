@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal, Optional
 from pydantic import BaseModel
 from enum import Enum
@@ -19,6 +20,8 @@ class MonitorModel(BaseModel, use_enum_values=True):
     monitor_body: Optional[dict] = None
     timeout: Optional[int] = None
     interval: Optional[int] = None
+    interval_unit: Optional[Literal['seconds', 'minutes', 'hours', 'days', 'weeks']] = None
+    expiry: Optional[datetime] = None
     expectation: Optional[dict] = None
     alerts: Optional[list[int]] = None
     is_active: Optional[bool] = None

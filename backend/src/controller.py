@@ -65,7 +65,13 @@ def run_monitor(monitor_type: str, monitor_body: dict) -> dict:
 def run_monitor_by_id(monitor_id):
     monitor = qe.get_monitor_by_id(monitor_id)
     monitor_type = monitor['monitor_type']
-    result = run_monitor(monitor_type, monitor['monitor_body'])
+    try:
+        result = run_monitor(monitor_type, monitor['monitor_body'])
+        # print(f"Executed Monitor ID: {monitor_id}")
+    except Exception as e:
+        logger.error(f"Error running monitor: {monitor_id} | {str(e)}")
+        return False
+
     outcome = result['is_success']
 
     if monitor_type == 'api':
@@ -79,8 +85,8 @@ def run_monitor_by_id(monitor_id):
             outcome = 200 <= result['response_code'] < 300
 
     # store run history
-    sql = f"""insert into run_history (monitor_id, outcome, response_time, response) 
-    values ({monitor_id}, {outcome}, {result['response_time_ms']}, {result['response_code']})
+    sql = f"""insert into run_history (monitor_id, outcome, response_time, response, created_at) 
+    values ({monitor_id}, {outcome}, {result['response_time_ms']}, {result['response_code']}, current_timestamp)
     """
     db.insert(sql)
     return outcome

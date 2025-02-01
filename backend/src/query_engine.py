@@ -35,8 +35,8 @@ def get_all_monitors():
 
 def insert_monitor(data: dict):
     logger.info(f"Creating monitor: {data}")
-    sql = """insert into monitors (monitor_type, monitor_name, monitor_body, timeout, interval, expectation, alerts, user_code, org_id)
-    values (%(monitor_type)s, %(monitor_name)s, %(monitor_body)s, %(timeout)s, %(interval)s, %(expectation)s, %(alerts)s, %(user_code)s, %(org_id)s)
+    sql = """insert into monitors (monitor_type, monitor_name, monitor_body, timeout, interval, interval_unit, expiry, expectation, alerts, user_code, org_id)
+    values (%(monitor_type)s, %(monitor_name)s, %(monitor_body)s, %(timeout)s, %(interval)s, %(interval_unit)s, %(expiry)s,  %(expectation)s, %(alerts)s, %(user_code)s, %(org_id)s)
     returning monitor_id
     """
     monitor_id = db.insert(sql, data)
