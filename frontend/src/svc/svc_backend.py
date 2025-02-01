@@ -1,6 +1,7 @@
 import os
 import json
 import pandas as pd
+from datetime import date
 import requests
 import streamlit as st
 from utils import logger
@@ -13,10 +14,8 @@ def load_service():
     res = requests.get(BACKEND_SERVICE)
     return res.json()
 
-def check_monitor(monitor_type: str, monitor_body):
+def check_monitor(monitor_type: str, monitor_body: dict):
     url = f"{BACKEND_SERVICE}/check?monitor_type={monitor_type}"
-    if isinstance(monitor_body, str):
-        monitor_body = {'body': monitor_body}
     res = requests.get(url, json=monitor_body)
     return res.json()
 
@@ -24,19 +23,21 @@ def get_stats(user_code: str):
     res = requests.get(f"{BACKEND_SERVICE}/stats?user_code={user_code}")
     return res.json()['data']
 
-def create_monitor(monitor_type, monitor_name, monitor_body, timeout, interval, monitor_expectation, alerts, user_code, org_code=None):
+def create_monitor(monitor_type, monitor_name, monitor_body, timeout, interval, interval_unit, expiry: date, monitor_expectation, alerts, user_code, org_code=None):
     url = f'{BACKEND_SERVICE}/create/monitor?monitor_type={monitor_type}'
     monitor_data = {
         'monitor_name': monitor_name,
         'monitor_body': monitor_body,
         'timeout': timeout,
         'interval': interval,
+        'interval_unit': interval_unit,
+        'expiry': expiry.strftime('%Y-%m-%d') if expiry else None,
         'expectation': monitor_expectation,
         'alerts': alerts,
         'user_code': user_code,
         'org_code': org_code
     }
-    res = requests.post(url, data=json.dumps(monitor_data), headers={'Content-Type': 'application/json'})
+    res = requests.post(url, json=monitor_data, headers={'Content-Type': 'application/json'})
 
     # clear cache if successful
     if 200 >= res.status_code >= 201:
@@ -64,7 +65,6 @@ def _fetch_api_data(url, params) -> pd.DataFrame:
         return pd.DataFrame()
     return pd.DataFrame(data)
 
-@st.cache_data(ttl=300)
 def fetch_monitors(filters: dict):
     return _fetch_api_data(url=f'{BACKEND_SERVICE}/fetch/monitor', params=filters)
 
