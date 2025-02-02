@@ -3,35 +3,37 @@ import streamlit as st
 from svc import svc_backend as backend
 
 import auth
+
+st.set_page_config(layout='wide')
 user_code = auth.ensure_logged_in()
 
+st.header("Manage Monitors")
 
 def _display_monitor(monitor):
     _tags = ', '.join([f"`{tag}`" for tag in monitor.get('tags')]) if monitor['tags'] else '`-`'
-    title = f"**{monitor['is_active']} [{monitor['monitor_type'].upper()}] {monitor['monitor_name']}**"
-    _header = f"{title} || {monitor['outcomes']}"
-    with st.expander(_header):
-        cc = st.columns([1, 2, 1])
-        with cc[0]:
-            _interval = st.text_input("Check Interval (sec)", value=monitor['interval'], key=f"{monitor['monitor_id']}_interval")
-            if int(_interval) != monitor['interval']:
-                res = backend.update_monitor(monitor['monitor_id'], {'interval': int(_interval)})
-                st.toast("Monitor Interval updated successfully", icon='🟢')
-            _timeout = st.text_input("Timeout (sec)", value=monitor['timeout'], key=f"{monitor['monitor_id']}_timeout")
-            if int(_timeout) != monitor['timeout']:
-                res = backend.update_monitor(monitor['monitor_id'], {'timeout': int(_timeout)})
-                st.toast(f"Monitor Timeout updated successfully", icon='🟢')
+    title = f"**[{monitor['monitor_type'].upper()}] {monitor['monitor_name']}**"
+    st.write(title)
+    cc = st.columns([1, 2, 1])
+    with cc[0]:
+        _interval = st.text_input(f"Check Interval ({monitor['interval_unit']})", value=monitor['interval'])
+        if int(_interval) != monitor['interval']:
+            res = backend.update_monitor(monitor['monitor_id'], {'interval': int(_interval)})
+            st.toast("Monitor Interval updated successfully", icon='🟢')
+        _timeout = st.text_input("Timeout (sec)", value=monitor['timeout'])
+        if int(_timeout) != monitor['timeout']:
+            res = backend.update_monitor(monitor['monitor_id'], {'timeout': int(_timeout)})
+            st.toast(f"Monitor Timeout updated successfully", icon='🟢')
 
-        with cc[1]:
-            st.write(f"Monitor Config")
-            _config = yaml.safe_dump(monitor['monitor_body'], default_flow_style=False)
-            st.code(_config, language='yaml')
+    with cc[1]:
+        st.write(f"Monitor Config")
+        _config = yaml.safe_dump(monitor['monitor_body'], default_flow_style=False)
+        st.code(_config, language='yaml')
 
-        with cc[2]:
-            st.write("Expectation")
-            _expect = yaml.safe_dump(monitor['expectation'], default_flow_style=False)
-            st.code(_expect, language='yaml')
-        pass
+    with cc[2]:
+        st.write("Expectation")
+        _expect = yaml.safe_dump(monitor['expectation'], default_flow_style=False)
+        st.code(_expect, language='yaml')
+    pass
 
 
 # fetch monitors
@@ -41,14 +43,32 @@ if monitor_df.empty:
     st.stop()
 
 # fetch monitor run history
-monito_history_df = backend.fetch_monitor_history({'user_code': user_code, 'limit': 20})
+monito_history_df = backend.fetch_monitor_history({'user_code': user_code, 'limit': 25})
 
 # merge monitor and history
 monitor_df = monitor_df.merge(monito_history_df, on='monitor_id', how='left')
-# replace true/false with icons
-monitor_df['is_active'] = monitor_df['is_active'].apply(lambda x: '`active`' if x else '`paused`')
-monitor_df['outcomes'] = monitor_df['outcomes'].str.replace('true', '🟢').str.replace('false', '🔴')
+monitor_df['display_interval'] = monitor_df['interval'].astype(str) + ' ' + monitor_df['interval_unit']
 
-for index, row in monitor_df.iterrows():
-    _display_monitor(row)
+# display monitors
+column_config = {
+    'monitor_id': 'ID #',
+    'monitor_name': 'Monitor Name',
+    'monitor_type': st.column_config.ListColumn("Type"),
+    'is_active': 'Is Active',
+    'display_interval': 'Check Interval',
+    'outcomes': st.column_config.BarChartColumn('Recent Outcomes', width='medium', help='Last 20 Uptime Check Status'),
+    'response_times': st.column_config.AreaChartColumn('Latency', width='medium', help='Last 20 Request Latency'),
+    'timeout': 'Timeout (Sec)',
+    'created_at': st.column_config.DateColumn('Created On'),
+    'expiry': 'Expiry Date',
+}
+selected_row = st.dataframe(monitor_df, hide_index=True, column_config=column_config, column_order=column_config.keys(), selection_mode=["single-row"], on_select='rerun')
+selected_row_index = selected_row['selection']['rows'][0] if selected_row['selection']['rows'] else None
+selected_monitor = monitor_df.iloc[selected_row_index or 0]
 
+st.divider()
+st.subheader('Edit Selected Monitor')
+if selected_row_index is None:
+    st.info(f"Please select a row in table above to proceed >> Defaulting to first Row...")
+
+_display_monitor(selected_monitor)

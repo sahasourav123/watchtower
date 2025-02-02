@@ -77,11 +77,11 @@ def fetch_recent_history_by_org(org_id: int, limit: int = 10):
 def fetch_recent_history_by_user(user_code: str, limit: int = 10):
     sql = f"""
     WITH ranked_history AS (
-        SELECT monitor_id, outcome, ROW_NUMBER() OVER (PARTITION BY monitor_id ORDER BY created_at DESC) AS rn
+        SELECT monitor_id, outcome, response_time, ROW_NUMBER() OVER (PARTITION BY monitor_id ORDER BY created_at DESC) AS rn
         FROM run_history
         where monitor_id in (select monitor_id from monitors where user_code = '{user_code}')
     )
-    SELECT monitor_id, string_agg(outcome::text, ' ') AS outcomes
+    SELECT monitor_id, array_agg(outcome) AS outcomes, array_agg(response_time) as response_times
     FROM ranked_history
     WHERE rn <= {limit}
     group by monitor_id

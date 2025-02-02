@@ -1,6 +1,7 @@
 import pandas as pd
-import plotly.express as px
 import streamlit as st
+import plotly.express as px
+import plotly.graph_objects as go
 from svc import svc_backend as backend
 
 st.header("Uptime History")
@@ -11,13 +12,16 @@ user_code = auth.ensure_logged_in(required_access_level='viewer')
 day_limit = st.number_input('Day Limit', value=60, min_value=1, max_value=90)
 df = backend.fetch_uptime_history(user_code, day_limit)
 
-# st.dataframe(df, hide_index=True)
-
 df['date'] = pd.to_datetime(df['date'])
+
+# check complete date range
+full_date_range = pd.date_range(start=df['date'].min(), end=df['date'].max())
 
 # Function to determine bar color based on uptime
 def get_bar_color(uptime_pct):
-    if uptime_pct < 90.0:
+    if uptime_pct < 0:
+        return 'white'
+    elif uptime_pct < 90.0:
         return 'red'
     elif uptime_pct < 100:
         return 'orange'
@@ -25,29 +29,28 @@ def get_bar_color(uptime_pct):
         return 'green'
 
 
-import plotly.graph_objects as go
-
 for monitor_name in df['monitor_name'].unique():
-    df_monitor = df[df['monitor_name'] == monitor_name]
+    df_monitor = df[df['monitor_name'] == monitor_name].set_index('date').reindex(full_date_range).fillna({'uptime_pct': -1})
 
     fig = go.Figure()
 
-    for index, row in df_monitor.iterrows():
+    # create color bar indicating uptime pct
+    for _date, row in df_monitor.iterrows():
         bar_color = get_bar_color(row['uptime_pct'])
 
         fig.add_trace(go.Bar(
-            x=[row['date']],
+            x=[_date],
             y=[1],
             marker_color=bar_color,
             hoverinfo='text',
-            hovertext=f"Date: {row['date'].strftime('%Y-%m-%d')}<br>Uptime: {row['uptime_pct']}%"
+            hovertext=f"Date: {_date.strftime('%Y-%m-%d')}<br>Uptime: {row['uptime_pct']}%"
         ))
 
     fig.update_layout(
         title=monitor_name,
         xaxis=dict(
             # title='Date',
-            tickvals=df_monitor['date'],
+            tickvals=full_date_range[::max(1, len(full_date_range)//10)],
             tickformat='%d %b'
         ),
         yaxis=dict(
@@ -55,7 +58,7 @@ for monitor_name in df['monitor_name'].unique():
             showticklabels=False
         ),
         showlegend=False,
-        height=140,
+        height=120,
         margin=dict(l=0, r=0, t=30, b=0)
     )
 
