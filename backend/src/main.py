@@ -85,7 +85,11 @@ def delete_monitor(monitor_id: int):
 @route.get("/fetch/monitor", tags=['monitor'])
 # @cache(expire=30)
 def get_monitors(response: Response, org_id: int = None, user_code: str = None):
-    df = qe.get_monitors({'org_id': org_id, 'user_code': user_code})
+    if user_code == 'guest':
+        df = qe.get_monitors({'tags': '{guest, public}'})
+    else:
+        df = qe.get_monitors({'org_id': org_id, 'user_code': user_code})
+
     return {"status": "success", "data": json.loads(df.to_json(orient='records'))}
 
 

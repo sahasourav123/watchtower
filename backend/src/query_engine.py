@@ -19,7 +19,16 @@ def monitor_stats(user_code: str):
 def get_monitors(filters):
     sql = "select * from monitors"
     if filters:
-        sql += " where " + " and ".join([f"{k}='{v}'" for k, v in filters.items() if v])
+        clause_list = []
+        for k, v in filters.items():
+            if not v:
+                continue
+            elif k in ['monitor_body', 'expectation', 'alerts', 'tags']:
+                clause_list.append(f"{k} @> '{v}'")
+            else:
+                clause_list.append(f"{k}='{v}'")
+
+        sql = f"{sql} where {' and '.join(clause_list)}"
     return db.query(sql)
 
 def get_monitor_by_id(monitor_id: int):
@@ -79,7 +88,10 @@ def fetch_recent_history_by_user(user_code: str, limit: int = 10):
     WITH ranked_history AS (
         SELECT monitor_id, outcome, response_time, ROW_NUMBER() OVER (PARTITION BY monitor_id ORDER BY created_at DESC) AS rn
         FROM run_history
-        where monitor_id in (select monitor_id from monitors where user_code = '{user_code}')
+        where monitor_id in (
+            select monitor_id from monitors 
+            where {f"tags @> '{{guest, public}}'" if user_code == 'guest' else f"user_code = '{user_code}'"}
+        )
     )
     SELECT monitor_id, array_agg(outcome) AS outcomes, array_agg(response_time) as response_times
     FROM ranked_history
@@ -92,7 +104,10 @@ def daily_uptime_history(user_code: str, day_limit: int):
     sql = f"""
     select * 
     from vw_uptime_summary 
-    where monitor_id in (select monitor_id from monitors where user_code = '{user_code}')
+    where monitor_id in (
+        select monitor_id from monitors 
+        where {f"tags @> '{{guest, public}}'" if user_code == 'guest' else f"user_code = '{user_code}'"}
+    )
     and date >= current_date - interval '{day_limit} days'
     order by date, monitor_id
     """
@@ -118,10 +133,13 @@ def insert_alert_channel(data) -> int:
     return channel_id
 
 def update_alert_channel(channel_id, data) -> int:
-    data['channel_id'] = channel_id
-    sql, _data = db.build_update_query(table_name='sc_alert_channel', data=data, primary_key_name='channel_id')
-    r = db.update(sql, _data)
-    logger.debug(f"ALERT #{channel_id} updated in database | {data}")
+    sql = f"""
+        UPDATE alert_channel SET
+            {','.join([f"{key}=%({key})s" for key in data.keys()])}
+        WHERE channel_id = {channel_id}
+        """
+    r = db.update(sql, data)
+    logger.debug(f"Alert Channel #{channel_id} updated in database | {data}")
     return r
 
 def delete_alert_channel(channel_id):

@@ -7,7 +7,10 @@ from svc import svc_backend as backend
 st.header("Uptime History")
 
 import auth
-user_code = auth.ensure_logged_in(required_access_level='viewer')
+user_code = auth.ensure_logged_in()
+
+if user_code == 'guest':
+    st.warning("You are accessing this page as **Guest**. Only sample monitors are displayed")
 
 day_limit = st.number_input('Day Limit', value=60, min_value=1, max_value=90)
 df = backend.fetch_uptime_history(user_code, day_limit)

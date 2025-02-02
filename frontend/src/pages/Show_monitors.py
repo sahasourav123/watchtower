@@ -36,6 +36,9 @@ def _display_monitor(monitor):
     pass
 
 
+if user_code == 'guest':
+    st.warning("You are accessing this page as **Guest**. Only sample monitors are displayed")
+
 # fetch monitors
 monitor_df = backend.fetch_monitors({'user_code': user_code})
 if monitor_df.empty:
@@ -43,7 +46,8 @@ if monitor_df.empty:
     st.stop()
 
 # fetch monitor run history
-monito_history_df = backend.fetch_monitor_history({'user_code': user_code, 'limit': 25})
+RECENT_HISTORY_LIMIT = 25
+monito_history_df = backend.fetch_monitor_history({'user_code': user_code, 'limit': RECENT_HISTORY_LIMIT})
 
 # merge monitor and history
 monitor_df = monitor_df.merge(monito_history_df, on='monitor_id', how='left')
@@ -56,8 +60,8 @@ column_config = {
     'monitor_type': st.column_config.ListColumn("Type"),
     'is_active': 'Is Active',
     'display_interval': 'Check Interval',
-    'outcomes': st.column_config.BarChartColumn('Recent Outcomes', width='medium', help='Last 20 Uptime Check Status'),
-    'response_times': st.column_config.AreaChartColumn('Latency', width='medium', help='Last 20 Request Latency'),
+    'outcomes': st.column_config.BarChartColumn('Recent Outcomes', width='medium', help=f'Last {RECENT_HISTORY_LIMIT} Uptime Check Status'),
+    'response_times': st.column_config.AreaChartColumn('Latency', width='medium', help=f'Last {RECENT_HISTORY_LIMIT} Request Latency'),
     'timeout': 'Timeout (Sec)',
     'created_at': st.column_config.DateColumn('Created On'),
     'expiry': 'Expiry Date',
@@ -68,6 +72,10 @@ selected_monitor = monitor_df.iloc[selected_row_index or 0]
 
 st.divider()
 st.subheader('Edit Selected Monitor')
+
+if user_code == 'guest':
+    st.warning("You are accessing this page as **Guest**. You cannot edit monitors")
+    st.stop()
 if selected_row_index is None:
     st.info(f"Please select a row in table above to proceed >> Defaulting to first Row...")
 
