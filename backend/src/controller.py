@@ -3,6 +3,9 @@ import re
 import time
 import yaml
 from utils.commons import logger
+
+import data_model as dm
+import scheduler as sch
 import query_engine as qe
 from utils.db_util import DatabaseManager
 from monitors import apis, sites, servers, databases
@@ -10,6 +13,34 @@ from monitors import apis, sites, servers, databases
 db = DatabaseManager()
 with open('config.yaml') as config_file:
     config = yaml.safe_load(config_file)
+
+def create_monitor(user_code: str, monitor_type: dm.MonitorTypes, monitor_data: dm.MonitorModel) -> int:
+    data = {**monitor_data.model_dump(), 'monitor_type': monitor_type.value, 'user_code': user_code}
+    # insert into database
+    monitor_id = qe.insert_monitor(data)
+    # schedule monitoring
+    sch.create_job(monitor_id, monitor_data.interval, monitor_data.interval_unit, monitor_data.expiry)
+    return monitor_id
+
+# update monitor
+def update_monitor(user_code: str, monitor_id: int, monitor_data: dm.MonitorModel) -> bool:
+    count = qe.update_monitor(user_code, monitor_id, monitor_data.model_dump(exclude_none=True))
+
+    if count > 0 and monitor_data.interval:
+        sch.create_job(monitor_id, monitor_data.interval, monitor_data.interval_unit, monitor_data.expiry)
+    elif count > 0 and monitor_data.is_active is False:
+        sch.manage_job('pause', monitor_id)
+    elif count > 0 and monitor_data.is_active:
+        sch.manage_job('resume', monitor_id)
+
+    return True
+
+# delete monitor
+def delete_monitor(user_code: str, monitor_id: int):
+    count = qe.delete_monitor(user_code, monitor_id)
+    if count > 0:
+        sch.manage_job('delete', monitor_id)
+    return {"status": "success"}
 
 def run_monitor(monitor_type: str, monitor_body: dict) -> dict:
     if (monitor_type == 'api' and 'url' not in monitor_body) or 'body' not in monitor_body:
@@ -91,3 +122,10 @@ def run_monitor_by_id(monitor_id):
     db.insert(sql)
     return outcome
 
+
+def refresh_monitor():
+    df = qe.get_all_monitors()
+    for idx, row in df.iterrows():
+        sch.create_job(row['monitor_id'], row['interval'], row['interval_unit'], row['expiry'], rerun=False)
+
+    return df.shape[0]

@@ -13,8 +13,6 @@ class MonitorTypes(str, Enum):
     DATABASE = 'database'
 
 class MonitorModel(BaseModel, use_enum_values=True):
-    org_id: Optional[int] = None
-    user_code: Optional[str] = None
     monitor_name: Optional[str] = None
     monitor_type: MonitorTypes = None
     monitor_body: Optional[dict] = None
@@ -30,7 +28,5 @@ class AlertChannelModel(BaseModel):
     channel_name: Optional[str] = None
     channel_type: Literal['email', 'telegram', 'slack', 'webhook'] = None
     recipient: Optional[str] = None
-    user_code: Optional[str] = None
-    org_id: Optional[int] = None
     is_active: Optional[bool] = None
     remarks: Optional[str] = None
