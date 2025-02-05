@@ -147,19 +147,22 @@ class SessionManager:
         else:
             return known_user['user_code']
 
+def _default_user():
+    user_code = os.environ.get('DEFAULT_USER', 'guest')
+    st.session_state['org_code'] = []
+    st.sidebar.write(f"User: **{user_code}**")
+    return user_code
+
 def ensure_logged_in(required_access_level='guest'):
     print(f'Ensure Logged In with access level: {required_access_level}')
     if str(os.environ.get("AUTH_ENABLED")).lower() == 'false':      # noqa
-        st.session_state['org_code'] = []
-        return os.environ.get('DEFAULT_USER')
+        return _default_user()
 
     sm = SessionManager()
     user_code = sm.login()
 
     if not user_code and required_access_level == 'guest':
-        user_code = os.environ.get('DEFAULT_USER', 'guest')
-        st.sidebar.write(f"User: **{user_code}**")
-        return user_code
+        return _default_user()
 
     elif not user_code:
         st.error('Login Required')

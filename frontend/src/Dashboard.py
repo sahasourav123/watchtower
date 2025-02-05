@@ -12,11 +12,13 @@ from __version__ import __version__
 # Start Application
 # ======================================================================
 st.set_page_config(layout='wide', page_title='The Watchtower', initial_sidebar_state='expanded')
-st.image('assets/watchtower.jpeg')
+with st.container(height=300, border=False):
+    st.image('assets/watchtower.jpeg', use_column_width=True)
+
 st.title(f'The Watchtower')
 logger.info("initializing app")
 svc = backend.load_service()
-st.subheader(f"*Frontend: {__version__} | Backend: {svc['version']}*")
+st.write(f"*Frontend: {__version__} | Backend: {svc['version']}*")
 
 style = """
 div.stButton button {
@@ -54,6 +56,20 @@ if env == 'production':
 import auth
 user_code = auth.ensure_logged_in('guest')
 
-if user_code:
-    stats = backend.get_stats(user_code)
-    st.dataframe(stats, column_config={'monitor_type': 'Type', 'total_monitors': 'Total', 'active_monitors': 'Active'})
+stats = backend.get_stats(user_code)
+
+st.subheader("Monitor Stats (Active/Total)")
+placeholder = {
+    'API': 0,
+    'WEBSITE': 1,
+    'DOMAIN': 2,
+    'SSL': 3,
+    'SERVER': 4,
+    'DATABASE': 5,
+}
+
+rc = st.columns(6)
+
+for idx, stat in enumerate(stats):
+    monitor_type = stat['monitor_type'].upper()
+    rc[placeholder[monitor_type]].metric(label=monitor_type, value=f"{stat['active_monitors']}/{stat['total_monitors']}")
