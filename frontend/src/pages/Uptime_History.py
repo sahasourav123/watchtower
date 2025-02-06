@@ -32,13 +32,17 @@ def get_bar_color(uptime_pct):
         return 'green'
 
 
-for monitor_name in df['monitor_name'].unique():
-    df_monitor = df[df['monitor_name'] == monitor_name].set_index('date').reindex(full_date_range).fillna({'uptime_pct': -1})
+for monitor_id, df_monitor in df.groupby('monitor_id'):
+    # Calculate Mean Uptime
+    avg_uptime = df_monitor['uptime_pct'].mean()
+    monitor_name = df_monitor['monitor_name'].iloc[-1]
+    monitor_type = df_monitor['monitor_type'].iloc[-1]
 
     fig = go.Figure()
+    sized_df = df_monitor.set_index('date').reindex(full_date_range).fillna({'uptime_pct': -1})
 
     # create color bar indicating uptime pct
-    for _date, row in df_monitor.iterrows():
+    for _date, row in sized_df.iterrows():
         bar_color = get_bar_color(row['uptime_pct'])
 
         fig.add_trace(go.Bar(
@@ -50,7 +54,7 @@ for monitor_name in df['monitor_name'].unique():
         ))
 
     fig.update_layout(
-        title=monitor_name,
+        title=f"{monitor_type} | {monitor_name}",
         xaxis=dict(
             # title='Date',
             tickvals=full_date_range[::max(1, len(full_date_range)//10)],
@@ -65,15 +69,23 @@ for monitor_name in df['monitor_name'].unique():
         margin=dict(l=0, r=0, t=30, b=0)
     )
 
-    st.plotly_chart(fig)
+    cc = st.columns([6, 1])
+    cc[0].plotly_chart(fig)
+    cc[1].metric('Mean Uptime', f"{avg_uptime:.1f}%")
+
+st.divider()
+st.subheader("Response Time Statistics")
+# filter df for monitor type: api, website, server
+filter_monitor_type = st.radio('Select Monitor Type', df['monitor_type'].unique(), horizontal=True)
+filtered_df = df[df['monitor_type'] == filter_monitor_type]
 
 # Box Plot for Avg Response Time
-fig4 = px.box(df, x='monitor_name', y='avg_rt', title='Average Response Time Distribution')
-fig4.update_layout(yaxis_title='Average Response Time (ms)')
+fig4 = px.box(filtered_df, x='monitor_name', y='avg_rt', title='Average Response Time Distribution')
+fig4.update_layout(yaxis_title='Average Response Time (ms)', xaxis_title='Monitor Name')
 
 # Box Plot for P90 Response Time
-fig5 = px.box(df, x='monitor_name', y='p90_rt', title='90th Percentile Response Time Distribution')
-fig5.update_layout(yaxis_title='90th Percentile Response Time (ms)')
+fig5 = px.box(filtered_df, x='monitor_name', y='p90_rt', title='90th Percentile Response Time Distribution')
+fig5.update_layout(yaxis_title='90th Percentile Response Time (ms)', xaxis_title='Monitor Name')
 
 # Show the figures
 st.plotly_chart(fig4)

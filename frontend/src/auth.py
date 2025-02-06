@@ -113,7 +113,7 @@ class SessionManager:
             user_api.log_signin({
                 "user_code": user_code,
                 "signin_provider": logged_in_user["provider"],
-                "signin_product": "screener"
+                "signin_product": "watchtower"
             })
 
             st.session_state['username'] = user_code

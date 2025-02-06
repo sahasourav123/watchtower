@@ -108,7 +108,7 @@ with agg_stats as (
         avg_rt, p90_rt
     from mv_uptime
 )
-select agg_stats.*, m.monitor_name
+select agg_stats.*, m.monitor_name, m.monitor_type, m.monitor_group
 from agg_stats
 left join monitors m on m.monitor_id = agg_stats.monitor_id;
 
