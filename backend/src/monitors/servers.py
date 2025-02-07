@@ -4,7 +4,7 @@ Created By: Sourav Saha
 """
 import socket
 
-def check_status(host: str, port: int, timeout=2) -> tuple[bool, int]:
+def check_tcp(host: str, port: int, timeout=2) -> tuple[bool, int]:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(timeout)
     try:

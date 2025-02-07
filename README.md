@@ -20,25 +20,9 @@ Project is live for Public use at [The Watchtower](https://watchtower.finanssure
    3. Private Status Page
    4. Proxy & IP Whitelisting
 
-# Supported Connectors
-| Type           | Target                    | Protocols            |
-|----------------|---------------------------|----------------------|
-| APIs           | REST, GraphQL, SOAP       |                      |
-| Websockets     | _(Upcoming)_              |                      |
-| Websites       | Public / Private          | HTTP, HTTPS          |
-|                | Domain Expiry             |                      |
-| Database       | Postgres, MongoDB, Redis  | _(Extensible)_       |
-| Servers        | Remote Servers            | SSH, RDP             |
-|                | Email _(Upcoming)_        | SMTP, POP3, IMAP     |
-|                | DNS _(Upcoming)_          | DNS, DNSSEC          |
-|                | File Servers _(Upcoming)_ | FTP, SFTP            |
-| Certificates   | Domains                   | SSL, TLS             |
-| Message Queues | _(Upcoming)_              | RabbitMQ, Kafka, SQS |
-
-
 # Basic Features
 1. [x] Create monitor
-2. [ ] View & Manage monitors
+2. [x] View & Manage monitors
 3. [x] View Uptime History 
 4. [ ] View history & connection statistics
 5. [ ] Public / Private status page
@@ -47,6 +31,30 @@ Project is live for Public use at [The Watchtower](https://watchtower.finanssure
 8. [ ] Organisation & User management
 9. [ ] Manage configs through API
 10. [ ] Manage configs through CLI / CI Pipeline
+
+# Supported Checks (Developed: 6 | Planned: 7)
+| Group          | Check                       | Description           | Interval     |
+|----------------|-----------------------------|-----------------------|--------------|
+| Microservices  | APIs                        | REST, GraphQL, SOAP   | 1 minute(s)+ |
+| Sites          | Websites Availability       | HTTP, HTTPS           | 1 minute(s)+ |
+|                | Page Speed Test _(planned)_ |                       |              |
+| Events         | Push Based _(planned)_      | Job Completion Status | 1 minute(s)+ |
+| Domains        | SSL Certificate Expiry      |                       | 1 week(s)+   |
+|                | Domain Expiry               |                       | 1 week(s)+   |
+|                | DNS Lookup                  |                       | 1 week(s)+   |
+| Databases      | Database Connection         | Postgres, Redis, ...  | 5 minute(s)+ |
+| Websockets     | _(planned)_                 |                       |              |
+| Servers        | Remote Servers _(planned)_  | SSH, RDP              |              |
+|                | Email _(planned)_           | SMTP, POP3, IMAP      |              |
+|                | File Servers _(planned)_    | FTP, SFTP             |              |
+| Message Queues | _(planned)_                 | RabbitMQ, Kafka, SQS  |              |
+
+
+## Supported Alerting Channels (Developed: 0 | Planned: 4)
+1. [ ] Email
+2. [ ] Teams
+3. [ ] Slack
+4. [ ] Webhook
 
 # Your contribution is appreciated
 1. Scaling the system with container orchestration for public use

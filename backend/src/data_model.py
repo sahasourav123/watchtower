@@ -8,8 +8,9 @@ class MonitorTypes(str, Enum):
     API = 'api'
     WEBSITE = 'website'
     DOMAIN = 'domain'
-    SERVER = 'server'
     SSL = 'ssl'
+    TCP = 'tcp'
+    DNS = 'dns'
     DATABASE = 'database'
 
 class MonitorModel(BaseModel, use_enum_values=True):

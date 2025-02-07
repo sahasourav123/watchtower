@@ -44,5 +44,5 @@ app = FastAPI(
 )
 
 # include routes in app
-app.include_router(public_route, tags=['public'], prefix='/api/v1')
-app.include_router(internal_route, tags=['private'], prefix='/internal/v1')
+app.include_router(public_route, tags=['public'], prefix='/public/v1')
+app.include_router(internal_route, tags=['internal'], prefix='/internal/v1')

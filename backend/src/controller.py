@@ -15,7 +15,7 @@ with open('config.yaml') as config_file:
     config = yaml.safe_load(config_file)
 
 def create_monitor(user_code: str, monitor_type: dm.MonitorTypes, monitor_data: dm.MonitorModel) -> int:
-    data = {**monitor_data.model_dump(), 'monitor_type': monitor_type.value, 'user_code': user_code}
+    data = {**monitor_data.model_dump(), 'monitor_type': monitor_type, 'user_code': user_code}
     # insert into database
     monitor_id = qe.insert_monitor(data)
     # schedule monitoring
@@ -43,7 +43,8 @@ def delete_monitor(user_code: str, monitor_id: int):
     return {"status": "success"}
 
 def run_monitor(monitor_type: str, monitor_body: dict) -> dict:
-    if (monitor_type == 'api' and 'url' not in monitor_body) or 'body' not in monitor_body:
+    target = monitor_body.get('url') or monitor_body.get('host')
+    if not target:
         return {
             'is_success': False,
             'response_code': None,
@@ -53,7 +54,6 @@ def run_monitor(monitor_type: str, monitor_body: dict) -> dict:
 
     # SSRF
     blacklist = config.get('blacklist', []) + os.getenv('BLACKLIST_HOSTS', '').split(',')
-    target = monitor_body.get('url') or monitor_body.get('body')
     for item in blacklist:
         if bool(re.search(item, target)):
             return {
@@ -65,21 +65,25 @@ def run_monitor(monitor_type: str, monitor_body: dict) -> dict:
 
     start_time = time.time()
     try:
-        if monitor_type == 'api':
-            outcome, response = apis.check_status(monitor_body)
-        elif monitor_type == 'website':
-            outcome, response = sites.check_status(monitor_body['body'])
-        elif monitor_type == 'domain':
-            outcome, response = sites.check_domain_expiry(monitor_body['body'])
-        elif monitor_type == 'server':
-            host, port = monitor_body['body'].split(':')
-            outcome, response = servers.check_status(host, int(port))
-        elif monitor_type == 'database':
-            outcome, response = databases.check_status(monitor_body['body'])
-        elif monitor_type == 'ssl':
-            outcome, response = sites.check_certificate_expiry(monitor_body['body'])
-        else:
-            outcome, response = False, 0
+        match monitor_type.lower():
+            case 'api':
+                outcome, response = apis.check_status(monitor_body)
+            case  'website':
+                outcome, response = sites.check_website(monitor_body['host'])
+            case 'domain':
+                outcome, response = sites.check_domain_expiry(monitor_body['host'])
+            case 'database':
+                outcome, response = databases.check_status(monitor_body['host'])
+            case 'ssl':
+                outcome, response = sites.check_certificate_expiry(monitor_body['host'])
+            case 'tcp':
+                host, port = monitor_body['host'].split(':')
+                outcome, response = servers.check_tcp(host, int(port))
+            case 'dns':
+                outcome, response = sites.check_dns(monitor_body['host'], monitor_body.get('record_type'), monitor_body.get('nameservers'))
+            case _:
+                # default case
+                outcome, response = False, 0
 
     except Exception as e:
         logger.error(f"Error running monitor: {e}")

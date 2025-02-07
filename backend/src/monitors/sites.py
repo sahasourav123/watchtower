@@ -8,9 +8,13 @@ from datetime import datetime
 import whois
 import certifi
 import requests
+import dns.resolver
+import dns.exception
+
+from utils.commons import logger
 
 
-def check_status(domain_name: str) -> tuple[bool, int]:
+def check_website(domain_name: str) -> tuple[bool, int]:
     try:
         res = requests.get(
             domain_name,
@@ -44,17 +48,16 @@ def check_domain_expiry(domain_name: str) -> tuple[bool, int]:
             expiry_date = expiry_date[0]
 
         if expiry_date is None:
-            print(f"Could not retrieve expiration date for {domain_name}.")
+            # logger.error(f"Could not retrieve expiration date for {domain_name}.")
             return False, -10
 
         else:
             remaining_days = (expiry_date - datetime.utcnow()).days
-            print(f"Domain {domain_name} expires on {expiry_date}.")
-            print(f"Days until expiry: {remaining_days}")
+            # logger.info(f"Domain {domain_name} expires after {remaining_days} days on {expiry_date}.")
             return True, remaining_days
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        # logger.error(f"An error occurred: {e}")
         return False, -10
 
 
@@ -66,7 +69,7 @@ def check_certificate_expiry(hostname: str, port=443) -> tuple[bool, int]:
             cert = ssock.getpeercert()
 
     if not cert:
-        print(f"Could not retrieve certificate for {hostname}")
+        # logger.error(f"Could not retrieve certificate for {hostname}")
         return False, -10
 
     # Get the certificate's expiration date
@@ -76,5 +79,28 @@ def check_certificate_expiry(hostname: str, port=443) -> tuple[bool, int]:
     # Get the current date
     remaining_days = (exp_date - datetime.utcnow()).days
 
-    print(f"Certificate for {hostname} is valid until {exp_date}, with {remaining_days} days remaining.")
+    # logger.info(f"Certificate for {hostname} is valid until {exp_date}, with {remaining_days} days remaining.")
     return True, remaining_days
+
+def check_dns(hostname: str, record_type: str = 'A', dns_server: list = None) -> tuple[bool, int]:
+    resolver = dns.resolver.Resolver()
+    resolver.nameservers = dns_server or ['8.8.8.8', '1.1.1.1']
+    try:
+        answer = resolver.resolve(hostname, record_type)
+        return True, len(answer.rrset.items)
+
+    except dns.resolver.NXDOMAIN:
+        # logger.error(f"The domain {hostname} does not exist.")
+        return False, -1
+
+    except dns.resolver.Timeout:
+        # logger.error(f"Query timed out when resolving {hostname} with DNS server {resolver.nameservers}.")
+        return False, -2
+
+    except dns.resolver.NoNameservers:
+        # logger.error(f"No nameservers are available to resolve {hostname} with DNS server {resolver.nameservers}.")
+        return False, -3
+
+    except dns.exception.DNSException as e:
+        # logger.error(f"An error occurred: {e}")
+        return False, -10
