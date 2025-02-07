@@ -13,12 +13,12 @@ if user_code == 'guest':
     st.warning("You are accessing this page as **Guest**. Only sample monitors are displayed")
 
 day_limit = st.number_input('Day Limit', value=60, min_value=1, max_value=90)
-df = backend.fetch_uptime_history(user_code, day_limit)
+uptime_df = backend.fetch_uptime_history(user_code, day_limit)
 
-df['date'] = pd.to_datetime(df['date'])
+uptime_df['date'] = pd.to_datetime(uptime_df['date'])
 
 # check complete date range
-full_date_range = pd.date_range(start=df['date'].min(), end=df['date'].max())
+full_date_range = pd.date_range(start=uptime_df['date'].min(), end=uptime_df['date'].max())
 
 # Function to determine bar color based on uptime
 def get_bar_color(uptime_pct):
@@ -32,7 +32,7 @@ def get_bar_color(uptime_pct):
         return 'green'
 
 
-for monitor_id, df_monitor in df.groupby('monitor_id'):
+for monitor_id, df_monitor in uptime_df.groupby('monitor_id'):
     # Calculate Mean Uptime
     avg_uptime = df_monitor['uptime_pct'].mean()
     monitor_name = df_monitor['monitor_name'].iloc[-1]
@@ -76,8 +76,8 @@ for monitor_id, df_monitor in df.groupby('monitor_id'):
 st.divider()
 st.subheader("Response Time Statistics")
 # filter df for monitor type: api, website, server
-filter_monitor_type = st.radio('Select Monitor Type', df['monitor_type'].unique(), horizontal=True)
-filtered_df = df[df['monitor_type'] == filter_monitor_type]
+filter_monitor_type = st.radio('Select Monitor Type', sorted(uptime_df['monitor_type'].unique()), horizontal=True)
+filtered_df = uptime_df[uptime_df['monitor_type'] == filter_monitor_type]
 
 # Box Plot for Avg Response Time
 fig4 = px.box(filtered_df, x='monitor_name', y='avg_rt', title='Average Response Time Distribution')

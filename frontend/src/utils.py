@@ -6,15 +6,7 @@ import logging
 from rich.logging import RichHandler
 
 import shlex
-import requests
 from urllib.parse import urlparse, parse_qs
-
-# load environment variables
-# import os
-# from dotenv import load_dotenv
-# base_dir = os.path.dirname(os.getcwd())
-# load_dotenv(f"{base_dir}/.env")
-# load_dotenv(f"{base_dir}/.env.local", override=True)
 
 logging.basicConfig(level='INFO', format='%(message)s', datefmt="[%X]",  handlers=[RichHandler()])
 logger = logging.getLogger()
@@ -40,7 +32,7 @@ def error_handler(func):
     return wrapper
 
 # parse curl command
-@st.cache_data(ttl=1800)
+@st.cache_data(ttl=600)
 def parse_curl_command(curl_command):
     try:
         # Split the curl command into a list of tokens
@@ -95,6 +87,27 @@ def parse_curl_command(curl_command):
             'headers': headers,
             'params': params,
             'body': body
+        }
+    except Exception as e:
+        return {
+            'error': str(e.args[0])
+        }
+
+# parse database connection string
+@st.cache_data(ttl=600)
+def parse_db_connection_string(conn_str: str):
+    try:
+        parsed = urlparse(conn_str)
+        if parsed.scheme not in ['postgresql', 'mysql', 'sqlite']:
+            raise ValueError("Invalid Database Scheme")
+
+        return {
+            'scheme': parsed.scheme,
+            'username': parsed.username,
+            'password': parsed.password,
+            'host': parsed.hostname,
+            'port': parsed.port,
+            'database': parsed.path[1:]
         }
     except Exception as e:
         return {

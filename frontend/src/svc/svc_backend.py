@@ -7,7 +7,7 @@ import streamlit as st
 from utils import logger
 
 BACKEND_SERVICE = os.getenv('BACKEND_SERVICE', 'http://backend:8000')
-PUBLIC_ROUTE = f"{BACKEND_SERVICE}/api/v1"
+PUBLIC_ROUTE = f"{BACKEND_SERVICE}/public/v1"
 INTERNAL_ROUTE = f"{BACKEND_SERVICE}/internal/v1"
 
 @st.cache_data(ttl=1800)
