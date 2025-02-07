@@ -58,18 +58,19 @@ user_code = auth.ensure_logged_in('guest')
 
 stats = backend.get_stats(user_code)
 
-st.subheader("Monitor Stats (Active/Total)")
+st.subheader("Active Monitor Count")
 placeholder = {
     'API': 0,
     'WEBSITE': 1,
     'DOMAIN': 2,
     'SSL': 3,
-    'SERVER': 4,
-    'DATABASE': 5,
+    'DNS': 4,
+    'TCP': 5,
+    'DATABASE': 6,
 }
 
-rc = st.columns(6)
+rc = st.columns(7)
 
 for idx, stat in enumerate(stats):
     monitor_type = stat['monitor_type'].upper()
-    rc[placeholder[monitor_type]].metric(label=monitor_type, value=f"{stat['active_monitors']}/{stat['total_monitors']}")
+    rc[placeholder[monitor_type]].metric(label=monitor_type, value=stat['active_monitors'])

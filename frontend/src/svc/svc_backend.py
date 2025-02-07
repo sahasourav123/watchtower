@@ -21,6 +21,11 @@ def check_monitor(monitor_type: str, monitor_body: dict):
     res = requests.get(url, json=monitor_body)
     return res.json()
 
+def run_monitor(user_code: str, monitor_id: int):
+    url = f"{INTERNAL_ROUTE}/run/monitor/{monitor_id}?user_code={user_code}"
+    res = requests.get(url)
+    return res.json()
+
 def get_stats(user_code: str):
     if user_code == 'guest':
         res = requests.get(f"{PUBLIC_ROUTE}/stats/global")

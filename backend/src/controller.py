@@ -121,7 +121,7 @@ def run_monitor_by_id(monitor_id):
 
     # store run history
     sql = f"""insert into run_history (monitor_id, outcome, response_time, response, created_at) 
-    values ({monitor_id}, {outcome}, {result['response_time_ms']}, {result['response_code']}, current_timestamp)
+    values ({monitor_id}, {outcome}, {result['response_time_ms'] or 0}, {result['response_code']}, current_timestamp)
     """
     db.insert(sql)
     return outcome

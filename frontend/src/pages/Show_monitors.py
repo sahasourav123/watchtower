@@ -35,9 +35,13 @@ def _display_monitor(monitor):
         _expect = yaml.safe_dump(monitor['expectation'], default_flow_style=False)
         st.code(_expect, language='yaml')
 
-    cc = st.columns([1, 1, 4])
+    cc = st.columns([1, 1, 1, 3])
 
-    if cc[0].button("Pause / Resume"):
+    if cc[0].button("Run Monitor"):
+        res = backend.run_monitor(user_code, monitor['monitor_id'])
+        st.json(res)
+
+    if cc[1].button("Pause / Resume"):
         res = backend.update_monitor(user_code, monitor['monitor_id'], {'is_active': not monitor['is_active']})
         if res['status'] == 'success':
             _updated_state = 'Paused' if monitor['is_active'] else 'Resumed'
@@ -45,7 +49,7 @@ def _display_monitor(monitor):
         else:
             st.error("Failed to pause monitor. Please try again later")
 
-    if cc[1].button("Delete Monitor", type='primary'):
+    if cc[2].button("Delete Monitor", type='primary'):
         res = backend.delete_monitor(user_code, monitor['monitor_id'])
         if res['status'] == 'success':
             st.success("Monitor Deleted Successfully")
