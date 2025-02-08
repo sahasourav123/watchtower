@@ -65,6 +65,5 @@ create_alert_channel()
 st.divider()
 
 # add to slack button
-slack_client_id = os.getenv('SLACK_CLIENT_ID')
-st.markdown(f"""<a href="https://slack.com/oauth/v2/authorize?client_id={slack_client_id}&scope=chat:write,users.profile:read&user_scope="><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>""", unsafe_allow_html=True)
-
+auth_url = f"https://slack.com/oauth/v2/authorize?client_id={os.getenv('SLACK_CLIENT_ID')}&scope=incoming-webhook&user_scope=&redirect_uri={os.getenv('SLACK_REDIRECT_URI')}"
+st.markdown(f"""<a href="{auth_url}"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>""", unsafe_allow_html=True)
