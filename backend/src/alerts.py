@@ -2,8 +2,7 @@ import os
 import requests
 import query_engine as qe
 
-def alert_manager(monitor, outcome: bool):
-    state = 'UP' if outcome else 'DOWN'
+def alert_manager(monitor, state: str):
     _channel_count = len(monitor['alerts'])
     if _channel_count == 0:
         return

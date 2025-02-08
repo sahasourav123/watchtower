@@ -101,15 +101,16 @@ def run_monitor(monitor_type: str, monitor_body: dict) -> dict:
 
 def alert_qualifier(monitor: dict, outcome: bool):
     _key = f"monitor#{monitor['monitor_id']}"
+    state = 'UP' if outcome else 'DOWN'
     # get last outcome
-    last_outcome = rd.get(_key)
+    last_state = rd.get(_key)
 
-    if last_outcome is None or last_outcome != outcome:
+    if state != last_state:
         # send alert
-        alerts.alert_manager(monitor, outcome)
+        alerts.alert_manager(monitor, state)
 
         # update last outcome
-        rd.set(_key, outcome)
+        rd.set(_key, state)
     pass
 
 def run_monitor_by_id(monitor_id):
