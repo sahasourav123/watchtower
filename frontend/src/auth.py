@@ -8,6 +8,7 @@ from cookie_model import CookieModel
 
 from svc import svc_user_api as user_api
 
+import utils
 import logging
 logger = logging.getLogger()
 
@@ -154,6 +155,9 @@ def _default_user():
     return user_code
 
 def ensure_logged_in(required_access_level='guest'):
+    with st.sidebar:
+        utils.page_navigation_menu()
+
     print(f'Ensure Logged In with access level: {required_access_level}')
     if str(os.environ.get("AUTH_ENABLED")).lower() == 'false':      # noqa
         return _default_user()

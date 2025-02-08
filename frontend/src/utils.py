@@ -14,6 +14,14 @@ logger = logging.getLogger()
 import streamlit as st
 import traceback
 
+def page_navigation_menu():
+    st.page_link("Dashboard.py", label=f"Dashboard", icon=":material/dashboard:")
+    st.page_link("pages/create-monitor.py", label=f"Create Monitors", icon=":material/flare:")
+    st.page_link("pages/show-monitors.py", label=f"Show monitors", icon=":material/lists:")
+    st.page_link("pages/uptime-history.py", label=f"Uptime History", icon=":material/vital_signs:")
+    st.page_link("pages/alert-channels.py", label=f"Alert Channels", icon=":material/edit_notifications:")
+    st.page_link("pages/user-profile.py", label=f"User Profile.py", icon=":material/people:")
+
 # context manager for error handling
 def error_handler(func):
     def wrapper(*args, **kwargs):

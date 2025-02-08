@@ -4,6 +4,7 @@ import streamlit as st
 import auth
 from svc import svc_user_api as user_api
 
+st.set_page_config(layout='wide', page_title='User Profile', initial_sidebar_state='expanded')
 st.title("User Profile")
 user_code = auth.ensure_logged_in()
 

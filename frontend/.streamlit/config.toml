@@ -67,7 +67,7 @@
 # Controls whether the default sidebar page navigation in a multi-page app is displayed.
 
 # Default: true
-# showSidebarNavigation = true
+showSidebarNavigation = false
 
 
 [runner]

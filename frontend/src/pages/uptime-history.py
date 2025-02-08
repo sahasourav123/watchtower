@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from svc import svc_backend as backend
 
+st.set_page_config(layout='wide', page_title='Uptime History', initial_sidebar_state='expanded')
 st.header("Uptime History")
 
 import auth

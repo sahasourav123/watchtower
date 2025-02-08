@@ -4,7 +4,7 @@ from svc import svc_backend as backend
 
 import auth
 
-st.set_page_config(layout='wide')
+st.set_page_config(layout='wide', page_title='Show Monitors', initial_sidebar_state='expanded')
 user_code = auth.ensure_logged_in()
 
 st.header("Manage Monitors")
