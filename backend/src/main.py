@@ -43,31 +43,6 @@ app = FastAPI(
     # docs_url=f"{BASE_ROUTE}/docs",
 )
 
-@app.get("/authorize/slack")
-async def oauth_callback(request: Request):
-    code = request.query_params.get('code')
-
-    if not code:
-        raise HTTPException(status_code=400, detail="Code not found")
-
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            'https://slack.com/api/oauth.v2.access',
-            data={
-                'client_id': os.getenv('SLACK_CLIENT_ID'),
-                'client_secret': os.getenv('SLACK_CLIENT_SECRET'),
-                'code': code,
-                'redirect_uri': os.getenv('SLACK_REDIRECT_URI')
-            }
-        )
-        token_data = response.json()
-        print(token_data)
-
-        if not token_data.get('ok'):
-            raise HTTPException(status_code=400, detail="Failed to authorize with Slack")
-
-    return RedirectResponse(url='https://watchtower.finanssure.com/alert-channels')  # Redirect to a success page
-
 # include routes in app
 app.include_router(public_route, tags=['public'], prefix='/public/v1')
 app.include_router(internal_route, tags=['internal'], prefix='/internal/v1')

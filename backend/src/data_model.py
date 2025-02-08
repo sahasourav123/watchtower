@@ -28,6 +28,6 @@ class MonitorModel(BaseModel, use_enum_values=True):
 class AlertChannelModel(BaseModel):
     channel_name: Optional[str] = None
     channel_type: Literal['email', 'telegram', 'slack', 'webhook'] = None
-    recipient: Optional[str] = None
+    recipient: Optional[dict] = None
     is_active: Optional[bool] = None
     remarks: Optional[str] = None

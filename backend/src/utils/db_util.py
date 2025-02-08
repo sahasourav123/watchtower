@@ -8,6 +8,19 @@ import threading
 import pandas as pd
 from contextlib import contextmanager
 
+import redis
+
+class RedisManager:
+
+    def __init__(self):
+        self.conn = redis.Redis.from_url(os.getenv('REDIS_URL', 'redis://redis:6379/0'))
+
+    def set(self, key, value, ttl=None):
+        self.conn.set(key, value, ex=ttl)
+
+    def get(self, key):
+        return self.conn.get(key).decode()
+
 class DatabaseManager:
 
     def __init__(self):
@@ -105,3 +118,4 @@ class DatabaseManager:
     def commit(self):
         self.conn.commit()
         pass
+

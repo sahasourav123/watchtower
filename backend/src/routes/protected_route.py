@@ -6,16 +6,15 @@ Created By: Sourav Saha
 from fastapi import Request, Response, APIRouter, Body, Depends, Security, HTTPException, status
 from fastapi.security.api_key import APIKeyHeader
 
-import os
-import redis
 import controller as ct
 import data_model as dm
+from utils.db_util import RedisManager
 
-REDIS_URL = os.getenv('REDIS_URL', 'redis://redis:6379/0')
-redis_conn = redis.Redis.from_url(REDIS_URL)
+rd = RedisManager()
+
 
 async def validate_token(request: Request, token: str = Security(APIKeyHeader(name='x-api-key', auto_error=False))) -> str:
-    user_code = redis_conn.get(token).decode() if token else None
+    user_code = rd.get(token) if token else None
 
     if not user_code:
         raise HTTPException(

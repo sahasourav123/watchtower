@@ -22,9 +22,11 @@ def _builder(filters: dict):
         if not v:
             continue
         elif k in ['monitor_body', 'expectation', 'alerts', 'tags']:
-            clause_list.append(f"{k} @> '{v}'")
+            clause_list.append(f"{k} @> %({k})s")
+        elif isinstance(v, list):
+            clause_list.append(f"{k} in {tuple(v)}")
         else:
-            clause_list.append(f"{k}='{v}'")
+            clause_list.append(f"{k}=%({k})s")
 
     return ' and '.join(clause_list)
 
@@ -33,7 +35,7 @@ def get_monitors(filters):
     if filters:
         sql = f"{sql} where {_builder(filters)}"
 
-    return db.query(sql)
+    return db.query(sql, filters)
 
 def get_monitor_by_id(monitor_id: int):
     sql = f"select * from monitors where monitor_id={monitor_id}"
@@ -103,7 +105,7 @@ def fetch_recent_history_by_user(filters: dict, limit: int = 10):
     WHERE rn <= {limit}
     group by monitor_id
     """
-    return db.query(sql)
+    return db.query(sql, filters)
 
 def daily_uptime_history(filters: dict, day_limit: int):
     sql = f"""
@@ -116,7 +118,14 @@ def daily_uptime_history(filters: dict, day_limit: int):
     and date >= current_date - interval '{day_limit} days'
     order by date, monitor_id
     """
-    return db.query(sql)
+    return db.query(sql, filters)
+
+def insert_monitor_check(monitor_id: int, outcome: bool, result: dict):
+    # store run history
+    sql = f"""insert into run_history (monitor_id, outcome, response_time, response, created_at) 
+    values ({monitor_id}, {outcome}, {result['response_time_ms'] or 0}, {result['response_code']}, current_timestamp)
+    """
+    db.insert(sql)
 
 
 """
@@ -124,9 +133,10 @@ def daily_uptime_history(filters: dict, day_limit: int):
 ALERT CHANNEL
 ================================================
 """
-def get_alert_channel(user_code) -> pd.DataFrame:
-    sql = f"select * from alert_channel where user_code = '{user_code}'"
-    return db.query(sql)
+def get_alert_channel(filters: dict) -> pd.DataFrame:
+    sql = f"select * from alert_channel where {_builder(filters)}"
+    print(sql)
+    return db.query(sql, filters)
 
 def insert_alert_channel(data) -> int:
     sql = """insert into alert_channel (channel_name, channel_type, recipient, remarks, user_code)

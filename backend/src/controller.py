@@ -7,10 +7,13 @@ from utils.commons import logger
 import data_model as dm
 import scheduler as sch
 import query_engine as qe
-from utils.db_util import DatabaseManager
+from utils.db_util import DatabaseManager, RedisManager
 from monitors import apis, sites, servers, databases
+import alerts
 
+rd = RedisManager()
 db = DatabaseManager()
+
 with open('config.yaml') as config_file:
     config = yaml.safe_load(config_file)
 
@@ -96,6 +99,18 @@ def run_monitor(monitor_type: str, monitor_body: dict) -> dict:
         'response_time_ms': response_time_ms
     }
 
+def alert_qualifier(monitor: dict, outcome: bool):
+    _key = f"monitor#{monitor['monitor_id']}"
+    # get last outcome
+    last_outcome = rd.get(_key)
+
+    if last_outcome is None or last_outcome != outcome:
+        # send alert
+        alerts.alert_manager(monitor, outcome)
+
+        # update last outcome
+        rd.set(_key, outcome)
+    pass
 
 def run_monitor_by_id(monitor_id):
     monitor = qe.get_monitor_by_id(monitor_id)
@@ -119,11 +134,12 @@ def run_monitor_by_id(monitor_id):
         else:
             outcome = 200 <= result['response_code'] < 300
 
-    # store run history
-    sql = f"""insert into run_history (monitor_id, outcome, response_time, response, created_at) 
-    values ({monitor_id}, {outcome}, {result['response_time_ms'] or 0}, {result['response_code']}, current_timestamp)
-    """
-    db.insert(sql)
+    # insert into run history
+    qe.insert_monitor_check(monitor_id, outcome, result)
+
+    # send alert (if different from last outcome)
+    alert_qualifier(monitor, outcome)
+
     return outcome
 
 
@@ -133,3 +149,9 @@ def refresh_monitor():
         sch.create_job(row['monitor_id'], row['interval'], row['interval_unit'], row['expiry'], rerun=False)
 
     return df.shape[0]
+
+
+def create_alert_channel(user_code: str, alert_data: dm.AlertChannelModel) -> int:
+    data = {**alert_data.model_dump(), 'user_code': user_code}
+    monitor_id = qe.insert_alert_channel(data)
+    return monitor_id

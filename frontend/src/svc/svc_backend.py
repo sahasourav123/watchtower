@@ -83,6 +83,7 @@ def _fetch_api_data(url, params) -> pd.DataFrame:
         return pd.DataFrame()
     return pd.DataFrame(data)
 
+@st.cache_data(ttl=60)
 def fetch_monitors(user_code: str):
     endpoint = f"{PUBLIC_ROUTE}/fetch/monitor" if user_code == 'guest' else f"{INTERNAL_ROUTE}/fetch/monitor"
     return _fetch_api_data(endpoint, params={'user_code': user_code})
@@ -99,9 +100,30 @@ def fetch_uptime_history(user_code, day_limit):
 # ==============================================================
 # ALERTS
 # ==============================================================
+def slack_oauth_callback(user_code: str, access_code: str):
+    response = requests.post(
+        'https://slack.com/api/oauth.v2.access',
+        data={
+            'client_id': os.getenv('SLACK_CLIENT_ID'),
+            'client_secret': os.getenv('SLACK_CLIENT_SECRET'),
+            'code': access_code,
+            'redirect_uri': os.getenv('SLACK_REDIRECT_URI')
+        }
+    )
+    result = response.json()
+    if not result.get('ok'):
+        return result
+
+    alert_recipient = {
+        "channel_type": "slack",
+        "channel_name": f"{result['team']['name']} - {result['incoming_webhook']['channel']}",
+        "recipient": result['incoming_webhook'],
+    }
+    return create_alert_channel(user_code, data=alert_recipient)
+
 def create_alert_channel(user_code, data):
-    url = f"{INTERNAL_ROUTE}/create/channel?"
-    res = requests.post(url, data=json.dumps({'user_code': user_code, **data}), headers={'Content-Type': 'application/json'})
+    url = f"{INTERNAL_ROUTE}/create/channel?user_code={user_code}"
+    res = requests.post(url, json=data, headers={'Content-Type': 'application/json'})
 
     # clear cache if successful
     if 200 >= res.status_code >= 201:
@@ -109,6 +131,16 @@ def create_alert_channel(user_code, data):
 
     return res.json()
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=120)
 def get_alert_channels(user_code):
-    return _fetch_api_data(f"{INTERNAL_ROUTE}/fetch/channel", params={'user_code': user_code})
+    channel_df = _fetch_api_data(f"{INTERNAL_ROUTE}/fetch/channel", params={'user_code': user_code})
+
+    # if channel type is 'slack' then extract channel_id from recipient
+    def extract_recipient(row):
+        if row['channel_type'] == 'slack':
+            return row['recipient']['channel_id']
+        return row['recipient'][0]
+
+    if not channel_df.empty:
+        channel_df['recipient'] = channel_df.apply(extract_recipient, axis=1)
+    return channel_df

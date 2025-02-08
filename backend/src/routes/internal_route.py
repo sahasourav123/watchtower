@@ -6,25 +6,23 @@ Created By: Sourav Saha
 from fastapi import Response, APIRouter
 import secrets
 
-import os
 import json
-import redis
 import controller as ct
 import data_model as dm
 import query_engine as qe
 
 from fastapi_redis_cache import cache
+from utils.db_util import RedisManager
 
 DEFAULT_CACHE_EXPIRE = 60
-REDIS_URL = os.getenv('REDIS_URL', 'redis://redis:6379/0')
-redis_conn = redis.Redis.from_url(REDIS_URL)
 internal_route = APIRouter()
+rd = RedisManager()
 
 # Generate API token for a user_code. This endpoint is NOT exposed. Only invoked from the frontend after user login
 @internal_route.get("/generate/token")
 def generate_token(user_code: str):
     token = secrets.token_hex(32)
-    redis_conn.set(token, user_code)
+    rd.set(token, user_code)
     return {"token": token}
 
 
@@ -110,13 +108,13 @@ TODO: ALERTS
 # fetch alert group
 @internal_route.get("/fetch/channel", tags=['alert'])
 def fetch_alert_channel(user_code: str):
-    channel_df = qe.get_alert_channel(user_code)
+    channel_df = qe.get_alert_channel({'user_code': user_code})
     return {"message": "Alert channel updated successfully", "data": channel_df.to_dict('records')}
 
 # create alert group
 @internal_route.post("/create/channel", tags=['alert'])
-def create_alert_channel(data: dm.AlertChannelModel):
-    channel_id = qe.insert_alert_channel(data.model_dump())
+def create_alert_channel(user_code: str, alert_data: dm.AlertChannelModel):
+    channel_id = ct.create_alert_channel(user_code, alert_data)
     return {'channel_id': channel_id, "message": "Alert channel created successfully"}
 
 # update alert group
