@@ -19,7 +19,8 @@ class RedisManager:
         self.conn.set(key, value, ex=ttl)
 
     def get(self, key):
-        return self.conn.get(key).decode()
+        val = self.conn.get(key)
+        return val.decode() if val else None
 
 class DatabaseManager:
 
