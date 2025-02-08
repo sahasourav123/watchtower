@@ -48,7 +48,7 @@ def create_monitor(monitor_type, monitor_name, monitor_body, timeout, interval, 
     res = requests.post(url, json=monitor_data, headers={'Content-Type': 'application/json'})
 
     # clear cache if successful
-    if 200 >= res.status_code >= 201:
+    if res.status_code in [200, 201]:
         fetch_monitors.clear()
 
     return res.json()
@@ -58,7 +58,7 @@ def update_monitor(user_code, monitor_id, monitor_data):
     res = requests.put(url, data=json.dumps(monitor_data), headers={'Content-Type': 'application/json'})
 
     # clear cache if successful
-    if 200 >= res.status_code >= 201:
+    if res.status_code in [200, 201]:
         fetch_monitors.clear()
 
     return res.json()
@@ -68,7 +68,7 @@ def delete_monitor(user_code, monitor_id):
     res = requests.delete(url)
 
     # clear cache if successful
-    if 200 >= res.status_code >= 201:
+    if res.status_code in [200, 201]:
         fetch_monitors.clear()
 
     return res.json()
@@ -126,7 +126,7 @@ def create_alert_channel(user_code, data):
     res = requests.post(url, json=data, headers={'Content-Type': 'application/json'})
 
     # clear cache if successful
-    if 200 >= res.status_code >= 201:
+    if res.status_code in [200, 201]:
         get_alert_channels.clear()
 
     return res.json()
@@ -137,9 +137,12 @@ def get_alert_channels(user_code):
 
     # if channel type is 'slack' then extract channel_id from recipient
     def extract_recipient(row):
-        if row['channel_type'] == 'slack':
+        if row['channel_type'] == 'email':
+            return row['recipient']['mail']
+        elif row['channel_type'] == 'slack':
             return row['recipient']['channel_id']
-        return row['recipient'][0]
+        else:
+            return row['recipient']['url']
 
     if not channel_df.empty:
         channel_df['recipient'] = channel_df.apply(extract_recipient, axis=1)

@@ -31,15 +31,34 @@ _channel_column_config = {
 def create_alert_channel():
     st.markdown("**Create Channel**")
     channel_name = st.text_input('Channel Name', placeholder='e.g. My Email Channel')
-    channel_type = st.selectbox('Channel Type', options=['email', 'slack', 'webhook'], index=0)
-    recipient = st.text_input('Destination', placeholder='e.g. foo.bar@example.com')
+    channel_type = st.selectbox('Channel Type', options=['email', 'webhook'], index=0)
+    recipient = None
+
+    if channel_type == 'email':
+        _input_ = st.text_input('Destination', placeholder='e.g. foo.bar@example.com')
+        recipient = {'mail': _input_} if _input_ else None
+
+    elif channel_type == 'webhook':
+        url = st.text_input('Destination', placeholder='e.g. https://my-webhook-url.com')
+        method = st.selectbox('Method', options=['POST', 'GET'], index=0)
+        headers = st.text_area('Headers', placeholder='e.g. {"Authorization": "Bearer my-token"}')
+        try:
+            recipient = {
+                "url": url,
+                "method": method,
+                "headers": eval(headers) if headers else {},
+            } if url else None
+        except Exception as e:
+            st.error(f"Invalid Headers: {e}")
+            recipient = None
+
     remarks = st.text_input('Remarks')
 
-    if st.button('Create Channel'):
+    if st.button('Create Channel') and recipient:
         res = backend.create_alert_channel(user_code, {
             'channel_name': channel_name,
             'channel_type': channel_type,
-            'recipient': [recipient],
+            'recipient': recipient,
             'remarks': remarks
         })
         st.json(res)
