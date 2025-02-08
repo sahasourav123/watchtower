@@ -4,7 +4,15 @@ import query_engine as qe
 
 def alert_manager(monitor, outcome: bool):
     state = 'UP' if outcome else 'DOWN'
-    alert_channels = qe.get_alert_channel({'channel_id': monitor['alerts']})
+    _channel_count = len(monitor['alerts'])
+    if _channel_count == 0:
+        return
+    elif _channel_count == 1:
+        channel_ids = monitor['alerts'][0]
+    else:
+        channel_ids = monitor['alerts']
+
+    alert_channels = qe.get_alert_channel({'channel_id': channel_ids})
 
     if not alert_channels.empty:
         for idx, channel in alert_channels.iterrows():
