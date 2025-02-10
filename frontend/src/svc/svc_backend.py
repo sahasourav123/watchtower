@@ -33,10 +33,11 @@ def get_stats(user_code: str):
         res = requests.get(f"{INTERNAL_ROUTE}/stats?user_code={user_code}")
     return res.json()['data']
 
-def create_monitor(monitor_type, monitor_name, monitor_body, timeout, interval, interval_unit, expiry: date, monitor_expectation, alerts, user_code, org_code=None):
+def create_monitor(monitor_type, monitor_group, monitor_name, monitor_body, timeout, interval, interval_unit, expiry: date, monitor_expectation, alerts, monitor_tags, user_code, org_code=None):
     url = f'{INTERNAL_ROUTE}/create/monitor?user_code={user_code}&monitor_type={monitor_type}'
     monitor_data = {
         'monitor_name': monitor_name,
+        'monitor_group': monitor_group,
         'monitor_body': monitor_body,
         'timeout': timeout,
         'interval': interval,
@@ -44,6 +45,7 @@ def create_monitor(monitor_type, monitor_name, monitor_body, timeout, interval, 
         'expiry': expiry.strftime('%Y-%m-%d') if expiry else None,
         'expectation': monitor_expectation,
         'alerts': alerts,
+        'tags': [tag.strip() for tag in monitor_tags.split(',')],
     }
     res = requests.post(url, json=monitor_data, headers={'Content-Type': 'application/json'})
 

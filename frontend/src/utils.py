@@ -20,7 +20,7 @@ def page_navigation_menu():
     st.page_link("pages/show-monitors.py", label=f"Show monitors", icon=":material/lists:")
     st.page_link("pages/uptime-history.py", label=f"Uptime History", icon=":material/vital_signs:")
     st.page_link("pages/alert-channels.py", label=f"Alert Channels", icon=":material/edit_notifications:")
-    st.page_link("pages/user-profile.py", label=f"User Profile.py", icon=":material/people:")
+    st.page_link("pages/user-profile.py", label=f"User Profile", icon=":material/people:")
 
 # context manager for error handling
 def error_handler(func):

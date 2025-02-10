@@ -58,7 +58,7 @@ user_code = auth.ensure_logged_in('guest')
 
 stats = backend.get_stats(user_code)
 
-st.subheader("Active Monitor Count")
+st.subheader(f"Active Monitor Count {'(Global)' if user_code == 'guest' else ''}")
 placeholder = {
     'API': 0,
     'WEBSITE': 1,

@@ -15,6 +15,7 @@ class MonitorTypes(str, Enum):
 
 class MonitorModel(BaseModel, use_enum_values=True):
     monitor_name: Optional[str] = None
+    monitor_group: Optional[str] = None
     monitor_type: MonitorTypes = None
     monitor_body: Optional[dict] = None
     timeout: Optional[int] = None
@@ -24,6 +25,7 @@ class MonitorModel(BaseModel, use_enum_values=True):
     expectation: Optional[dict] = None
     alerts: Optional[list[int]] = None
     is_active: Optional[bool] = None
+    tags: Optional[list[str]] = None
 
 class AlertChannelModel(BaseModel):
     channel_name: Optional[str] = None

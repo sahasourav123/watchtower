@@ -78,6 +78,7 @@ monitor_df['display_interval'] = monitor_df['interval'].astype(str) + ' ' + moni
 # display monitors
 column_config = {
     'monitor_id': 'ID #',
+    'monitor_group': 'Group',
     'monitor_name': 'Monitor Name',
     'monitor_type': st.column_config.ListColumn("Type"),
     'is_active': 'Is Active',
@@ -85,8 +86,9 @@ column_config = {
     'outcomes': st.column_config.BarChartColumn('Recent Outcomes', width='medium', help=f'Last {RECENT_HISTORY_LIMIT} Uptime Check Status'),
     'response_times': st.column_config.AreaChartColumn('Latency', width='medium', help=f'Last {RECENT_HISTORY_LIMIT} Request Latency'),
     'timeout': 'Timeout (Sec)',
-    'created_at': st.column_config.DateColumn('Created On'),
     'expiry': 'Expiry Date',
+    'tags': 'Tags',
+    'created_at': st.column_config.DateColumn('Created On'),
 }
 selected_row = st.dataframe(monitor_df, hide_index=True, column_config=column_config, column_order=column_config.keys(), selection_mode=["single-row"], on_select='rerun')
 selected_row_index = selected_row['selection']['rows'][0] if selected_row['selection']['rows'] else None
