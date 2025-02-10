@@ -30,3 +30,15 @@ def check_status(monitor_body: dict) -> tuple[bool, int]:
     except Exception as e:
         # logger.error(f"Error: {e}")
         return False, -10
+
+def validate_outcome(monitor, result):
+    expectation = monitor.get('expectation')
+    if expectation:
+        response_code_list = expectation.get('response_codes')
+        is_allow_list = expectation.get('is_allow_list')
+        outcome = (is_allow_list and result['response_code'] in response_code_list) or (not is_allow_list and result['response_code'] not in response_code_list)
+
+    else:
+        outcome = 200 <= result['response_code'] < 300
+
+    return outcome

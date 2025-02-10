@@ -94,7 +94,7 @@ JOBS
 ================================================
 """
 # refresh monitor
-@internal_route.get("/refresh/monitor")
+@internal_route.get("/refresh/monitor", tags=['admin'])
 def refresh_monitor():
     count = ct.refresh_monitor()
     return {"status": "success", "count": count}

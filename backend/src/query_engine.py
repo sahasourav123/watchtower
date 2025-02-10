@@ -43,11 +43,6 @@ def get_monitor_by_id(monitor_id: int):
     monitor = _df.to_dict('records')[0]
     return monitor
 
-def get_all_monitors():
-    sql = "select * from monitors where is_active"
-    df = db.query(sql)
-    return df
-
 def insert_monitor(data: dict):
     logger.info(f"Creating monitor: {data}")
     sql = """insert into monitors (monitor_type, monitor_name, monitor_body, timeout, interval, interval_unit, expiry, expectation, alerts, user_code)

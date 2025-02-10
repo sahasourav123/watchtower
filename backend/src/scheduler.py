@@ -7,6 +7,7 @@ from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+from apscheduler.util import undefined
 
 from apscheduler.executors.pool import ThreadPoolExecutor
 import controller as ct
@@ -61,7 +62,7 @@ scheduler = Scheduler().get_scheduler()
 
 def create_job(monitor_id, interval: int, interval_unit: str, expiry: datetime, rerun: bool = True):
     job_id = f"monitor#{monitor_id}"
-    _next_run_time = datetime.now() if rerun else None
+    _next_run_time = datetime.now() if rerun else undefined
     if interval_unit in ['s', 'seconds']:
         scheduler.add_job(ct.run_monitor_by_id, trigger='interval', args=[monitor_id], id=job_id, seconds=interval, replace_existing=True, jitter=30, next_run_time=_next_run_time, end_date=expiry)
     elif interval_unit in ['m', 'minutes']:

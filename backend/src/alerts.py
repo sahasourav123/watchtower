@@ -19,7 +19,7 @@ def alert_manager(monitor, state: str):
             if channel['channel_type'] == 'webhook':
                 webhook_alert(monitor, recipient, state)
             elif channel['channel_type'] == 'email':
-                email_alert(monitor, recipient[0], state)
+                email_alert(monitor, recipient['mail'], state)
             elif channel['channel_type'] == 'slack':
                 slack_alert(monitor, recipient['channel_id'], state)
 

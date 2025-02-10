@@ -123,17 +123,10 @@ def run_monitor_by_id(monitor_id):
         logger.error(f"Error running monitor: {monitor_id} | {str(e)}")
         return False
 
-    outcome = result['is_success']
-
     if monitor_type == 'api':
-        expectation = monitor.get('expectation')
-        if expectation:
-            response_code_list = expectation.get('response_codes')
-            is_allow_list = expectation.get('is_allow_list')
-            outcome = (is_allow_list and result['response_code'] in response_code_list) or (not is_allow_list and result['response_code'] not in response_code_list)
-
-        else:
-            outcome = 200 <= result['response_code'] < 300
+        outcome = apis.validate_outcome(monitor, result)
+    else:
+        outcome = result['is_success']
 
     # insert into run history
     qe.insert_monitor_check(monitor_id, outcome, result)
@@ -145,7 +138,7 @@ def run_monitor_by_id(monitor_id):
 
 
 def refresh_monitor():
-    df = qe.get_all_monitors()
+    df = qe.get_monitors({'is_active': True})
     for idx, row in df.iterrows():
         sch.create_job(row['monitor_id'], row['interval'], row['interval_unit'], row['expiry'], rerun=False)
 
