@@ -34,6 +34,13 @@ def get_monitor_stats(response: Response):
     df = qe.monitor_stats()
     return {"status": "success", "data": df.to_dict('records')}
 
+@public_route.get("/stats/execution")
+# @cache(expire=DEFAULT_CACHE_EXPIRE)
+def get_execution_stats(response: Response):
+    daywise_df = qe.daywise_execution_stats()
+    final_df = qe.final_execution_stats()
+    return {"status": "success", "agg": final_df.to_dict('records'),  "data": daywise_df.to_dict('records')}
+
 @public_route.get("/fetch/monitor")
 @cache(expire=DEFAULT_CACHE_EXPIRE)
 def get_monitors(response: Response, org_id: int = None, user_code: str = None):

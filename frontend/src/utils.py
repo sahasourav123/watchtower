@@ -121,3 +121,11 @@ def parse_db_connection_string(conn_str: str):
         return {
             'error': str(e.args[0])
         }
+
+@st.cache_data(ttl=600)
+def format_large_number(num, round_to=2):
+    magnitude = 0
+    while abs(num) >= 1000:
+        magnitude += 1
+        num = round(num / 1000.0, round_to)
+    return '{:.{}f}{}'.format(num, round_to, ['', 'K', 'M', 'B', 'T', 'P'][magnitude])

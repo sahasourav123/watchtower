@@ -102,16 +102,18 @@ SELECT add_continuous_aggregate_policy('mv_uptime',
 
 
 -- calculate daily (in minutes) uptime by date and monitor_id
+drop view if exists vw_uptime_summary;
 create or replace view vw_uptime_summary as
 with agg_stats as (
     select monitor_id, date(date) as date,
         round((success::numeric/total)*100, 2) as uptime_pct,
         round(((fail_count/total) * extract(epoch from total_check_time) / 60), 2) as downtime_in_minutes,
         fail_count,
+        total,
         avg_rt, p90_rt
     from mv_uptime
 )
-select agg_stats.*, m.monitor_name, m.monitor_type, m.monitor_group
+select m.monitor_group, m.monitor_name, m.monitor_type, agg_stats.*
 from agg_stats
 left join monitors m on m.monitor_id = agg_stats.monitor_id;
 
@@ -148,9 +150,9 @@ with agg_stats as (
     from mv_stats
     group by monitor_id, is_success, response
 )
-select m.monitor_group, m.monitor_name, m.monitor_type, agg_stats.*
+select m.monitor_group, m.monitor_name, m.monitor_type, m.user_code, agg_stats.*
 from agg_stats
-left join monitors m on m.monitor_id = agg_stats.monitor_id
+right join monitors m on m.monitor_id = agg_stats.monitor_id
 order by monitor_id, is_success, last_check_time desc;
 
 
@@ -169,3 +171,4 @@ select sum(total) as total_checks from mv_uptime;
 
 --
 select * from vw_daily_stats;
+select * from vw_uptime_summary;

@@ -16,6 +16,30 @@ def monitor_stats(user_code: str = None):
     """
     return db.query(sql)
 
+def daywise_execution_stats(day_limit: int = 90):
+    sql = f"""
+    select date(date) as date, sum(total) as total_count
+    from mv_uptime
+    where date >= current_date - interval '{day_limit} day'
+    group by date
+    order by date
+    """
+    return db.query(sql)
+
+def final_execution_stats():
+    sql = f"""select monitor_type, sum(total) as total_checks 
+    from vw_uptime_summary
+    group by monitor_type
+    """
+    return db.query(sql)
+
+def response_stats(user_code: str = None):
+    sql = f"""select * from vw_daily_stats
+    {f"where user_code = '{user_code}'" if user_code else ""}
+    """
+    return db.query(sql)
+
+
 def _builder(filters: dict):
     clause_list = []
     for k, v in filters.items():

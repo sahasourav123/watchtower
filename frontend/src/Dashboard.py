@@ -3,6 +3,7 @@ Created On: July 2024
 Created By: Sourav Saha
 """
 import os
+import utils
 from utils import logger
 import streamlit as st
 from svc import svc_backend as backend
@@ -56,7 +57,7 @@ if env == 'production':
 import auth
 user_code = auth.ensure_logged_in('guest')
 
-stats = backend.get_stats(user_code)
+stats = backend.get_monitor_stats(user_code)
 
 st.subheader(f"Active Monitor Count {'(Global)' if user_code == 'guest' else ''}")
 placeholder = {
@@ -73,4 +74,27 @@ rc = st.columns(7)
 
 for idx, stat in enumerate(stats):
     monitor_type = stat['monitor_type'].upper()
-    rc[placeholder[monitor_type]].metric(label=monitor_type, value=stat['active_monitors'])
+    rc[placeholder[monitor_type]].metric(label=monitor_type, value=utils.format_large_number(stat['active_monitors'], 0))
+
+
+# ======================================================================
+# Execution Trends
+# ======================================================================
+st.subheader("Checks Performed (Global)")
+agg_execution_stats, execution_stats_df = backend.get_execution_stats()
+
+rc = st.columns(7)
+for idx, stat in enumerate(agg_execution_stats):
+    monitor_type = stat['monitor_type'].upper()
+    rc[placeholder[monitor_type]].metric(label=monitor_type, value=utils.format_large_number(stat['total_checks'], 0))
+
+# plotly bar chart
+import plotly.express as px
+st.plotly_chart(
+    px.bar(
+        execution_stats_df, y='total_count', title='Check Count Trends',
+        labels={'date': 'Date', 'total_count': 'Check Count'},
+        height=300,
+    ),
+    use_container_width=True,
+)

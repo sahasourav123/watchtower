@@ -26,12 +26,21 @@ def run_monitor(user_code: str, monitor_id: int):
     res = requests.get(url)
     return res.json()
 
-def get_stats(user_code: str):
+def get_monitor_stats(user_code: str):
     if user_code == 'guest':
         res = requests.get(f"{PUBLIC_ROUTE}/stats/global")
     else:
-        res = requests.get(f"{INTERNAL_ROUTE}/stats?user_code={user_code}")
+        res = requests.get(f"{INTERNAL_ROUTE}/stats/monitor?user_code={user_code}")
     return res.json()['data']
+
+def get_response_stats(user_code: str):
+    res = requests.get(f"{INTERNAL_ROUTE}/stats/response?user_code={user_code}")
+    return res.json()['data']
+
+def get_execution_stats():
+    res = requests.get(f"{PUBLIC_ROUTE}/stats/execution")
+    result = res.json()
+    return result['agg'], pd.DataFrame(result['data']).set_index('date')
 
 def create_monitor(monitor_type, monitor_group, monitor_name, monitor_body, timeout, interval, interval_unit, expiry: date, monitor_expectation, alerts, monitor_tags, user_code, org_code=None):
     url = f'{INTERNAL_ROUTE}/create/monitor?user_code={user_code}&monitor_type={monitor_type}'

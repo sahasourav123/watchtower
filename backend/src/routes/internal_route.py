@@ -68,10 +68,16 @@ STATS
 ================================================
 """
 # monitor stats
-@internal_route.get("/stats")
+@internal_route.get("/stats/monitor")
 @cache(expire=DEFAULT_CACHE_EXPIRE)
 def get_monitor_stats(response: Response, user_code: str):
     df = qe.monitor_stats(user_code)
+    return {"status": "success", "data": df.to_dict('records')}
+
+@internal_route.get("/stats/response")
+@cache(expire=DEFAULT_CACHE_EXPIRE)
+def get_response_stats(response: Response, user_code: str):
+    df = qe.response_stats(user_code)
     return {"status": "success", "data": df.to_dict('records')}
 
 # get recent history
