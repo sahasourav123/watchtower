@@ -16,13 +16,13 @@ def _display_monitor(monitor):
     cc = st.columns([1, 2, 1])
     with cc[0]:
         _interval = st.text_input(f"Check Interval ({monitor['interval_unit']})", value=monitor['interval'])
-        if int(_interval) != monitor['interval']:
-            res = backend.update_monitor(user_code, monitor['monitor_id'], {'interval': int(_interval)})
+        if _interval != monitor['interval']:
+            res = backend.update_monitor(user_code, monitor['monitor_id'], {'interval': _interval})
             st.toast("Monitor Interval updated successfully", icon='🟢')
 
         _timeout = st.text_input("Timeout (sec)", value=monitor['timeout'])
         if int(_timeout) != monitor['timeout']:
-            res = backend.update_monitor(user_code, monitor['monitor_id'], {'timeout': int(_timeout)})
+            res = backend.update_monitor(user_code, monitor['monitor_id'], {'timeout': _timeout})
             st.toast(f"Monitor Timeout updated successfully", icon='🟢')
 
     with cc[1]:
@@ -32,7 +32,7 @@ def _display_monitor(monitor):
 
     with cc[2]:
         st.write("Expectation")
-        _expect = yaml.safe_dump(monitor['expectation'], default_flow_style=False)
+        _expect = yaml.safe_dump(monitor['expectation'], default_flow_style=False) if monitor['expectation'] else "<DEFAULT>"
         st.code(_expect, language='yaml')
 
     cc = st.columns([1, 1, 1, 3])
@@ -73,7 +73,12 @@ monito_history_df = backend.fetch_monitor_history(user_code, RECENT_HISTORY_LIMI
 
 # merge monitor and history
 monitor_df = monitor_df.merge(monito_history_df, on='monitor_id', how='left')
-monitor_df['display_interval'] = monitor_df['interval'].astype(str) + ' ' + monitor_df['interval_unit']
+
+def concat_interval(row):
+    return f"{row['interval']} {row['interval_unit']}" if row['interval_unit'] != 'cron' else row['interval']
+
+
+monitor_df['display_interval'] = monitor_df.apply(concat_interval, axis=1)
 
 # display monitors
 column_config = {

@@ -59,6 +59,7 @@ def get_monitors(filters):
     if filters:
         sql = f"{sql} where {_builder(filters)}"
 
+    sql = f"{sql} order by monitor_group, monitor_type"
     return db.query(sql, filters)
 
 def get_monitor_by_id(monitor_id: int):
@@ -139,10 +140,10 @@ def daily_uptime_history(filters: dict, day_limit: int):
     """
     return db.query(sql, filters)
 
-def insert_monitor_check(monitor_id: int, outcome: bool, result: dict):
+def insert_monitor_history(monitor_id: int, outcome: bool, response_code: int, response_time_ms: int):
     # store run history
     sql = f"""insert into run_history (monitor_id, outcome, response_time, response, created_at) 
-    values ({monitor_id}, {outcome}, {result['response_time_ms'] or 0}, {result['response_code']}, current_timestamp)
+    values ({monitor_id}, {outcome}, {response_time_ms or 0}, {response_code}, current_timestamp)
     """
     db.insert(sql)
 
@@ -154,7 +155,6 @@ ALERT CHANNEL
 """
 def get_alert_channel(filters: dict) -> pd.DataFrame:
     sql = f"select * from alert_channel where {_builder(filters)}"
-    print(sql)
     return db.query(sql, filters)
 
 def insert_alert_channel(data) -> int:
@@ -165,16 +165,6 @@ def insert_alert_channel(data) -> int:
     channel_id = db.insert(sql, data)
     logger.debug(f"{data['user_code']} | ALERT #{channel_id} inserted into database")
     return channel_id
-
-def update_alert_channel(channel_id, data) -> int:
-    sql = f"""
-        UPDATE alert_channel SET
-            {','.join([f"{key}=%({key})s" for key in data.keys()])}
-        WHERE channel_id = {channel_id}
-        """
-    r = db.update(sql, data)
-    logger.debug(f"Alert Channel #{channel_id} updated in database | {data}")
-    return r
 
 def delete_alert_channel(channel_id):
     sql = f"""delete from alert_channel where channel_id = {channel_id}"""

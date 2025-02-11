@@ -2,6 +2,7 @@ import os
 import re
 import time
 import yaml
+from utils import commons
 from utils.commons import logger
 
 import data_model as dm
@@ -17,13 +18,18 @@ db = DatabaseManager()
 with open('config.yaml') as config_file:
     config = yaml.safe_load(config_file)
 
-def create_monitor(user_code: str, monitor_type: dm.MonitorTypes, monitor_data: dm.MonitorModel) -> int:
+def create_monitor(user_code: str, monitor_type: dm.MonitorTypes, monitor_data: dm.MonitorModel) -> (int, str):
     data = {**monitor_data.model_dump(), 'monitor_type': monitor_type, 'user_code': user_code}
     # insert into database
     monitor_id = qe.insert_monitor(data)
+
+    # if monitor_type == 'event':
+    computed_hash = commons.compute_hash(monitor_id)
+    qe.update_monitor(user_code, monitor_id, data={'monitor_body': {**monitor_data.monitor_body, 'hash': computed_hash}})
+
     # schedule monitoring
     sch.create_job(monitor_id, monitor_data.interval, monitor_data.interval_unit, monitor_data.expiry)
-    return monitor_id
+    return monitor_id, computed_hash
 
 # update monitor
 def update_monitor(user_code: str, monitor_id: int, monitor_data: dm.MonitorModel) -> bool:
@@ -116,6 +122,11 @@ def alert_qualifier(monitor: dict, outcome: bool):
 def run_monitor_by_id(monitor_id):
     monitor = qe.get_monitor_by_id(monitor_id)
     monitor_type = monitor['monitor_type']
+
+    if monitor_type == 'event':
+        logger.warning(f"WIP: Event based monitor cannot be run yet")
+        return
+
     try:
         result = run_monitor(monitor_type, monitor['monitor_body'])
         # print(f"Executed Monitor ID: {monitor_id}")
@@ -129,7 +140,7 @@ def run_monitor_by_id(monitor_id):
         outcome = result['is_success']
 
     # insert into run history
-    qe.insert_monitor_check(monitor_id, outcome, result)
+    qe.insert_monitor_history(monitor_id, outcome, result['response_code'], result['response_time_ms'])
 
     # send alert (if different from last outcome)
     alert_qualifier(monitor, outcome)

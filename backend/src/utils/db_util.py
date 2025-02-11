@@ -87,9 +87,10 @@ class DatabaseManager:
             self.commit()
             return c.rowcount
 
-    def update(self, sql, f=()) -> int:
-        with self.cursor_context(sql, f) as c:
-            c.execute(sql, f)
+    def update(self, sql, data=()) -> int:
+        _data = self._pre_process(data) if isinstance(data, dict) else data
+        with self.cursor_context(sql, _data) as c:
+            c.execute(sql, _data)
             self.commit()
             return c.rowcount
 

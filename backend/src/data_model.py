@@ -7,6 +7,7 @@ from enum import Enum
 class MonitorTypes(str, Enum):
     API = 'api'
     WEBSITE = 'website'
+    EVENT = 'event'
     DOMAIN = 'domain'
     SSL = 'ssl'
     TCP = 'tcp'
@@ -19,8 +20,8 @@ class MonitorModel(BaseModel, use_enum_values=True):
     monitor_type: MonitorTypes = None
     monitor_body: Optional[dict] = None
     timeout: Optional[int] = None
-    interval: Optional[int] = None
-    interval_unit: Optional[Literal['seconds', 'minutes', 'hours', 'days', 'weeks']] = None
+    interval: Optional[int | str] = None
+    interval_unit: Optional[Literal['seconds', 'minutes', 'hours', 'days', 'weeks', 'cron']] = None
     expiry: Optional[datetime] = None
     expectation: Optional[dict] = None
     alerts: Optional[list[int]] = None

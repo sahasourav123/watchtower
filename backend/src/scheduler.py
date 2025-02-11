@@ -60,22 +60,33 @@ class Scheduler:
 
 scheduler = Scheduler().get_scheduler()
 
-def create_job(monitor_id, interval: int, interval_unit: str, expiry: datetime, rerun: bool = True):
+def create_job(monitor_id, interval: int | str, interval_unit: str, expiry: datetime, rerun: bool = True):
     job_id = f"monitor#{monitor_id}"
+
+    if not interval:
+        logger.warning(f"Invalid Interval: {interval} | monitor_id: {monitor_id}")
+        return job_id
+
     _next_run_time = datetime.now() if rerun else undefined
-    if interval_unit in ['s', 'seconds']:
-        scheduler.add_job(ct.run_monitor_by_id, trigger='interval', args=[monitor_id], id=job_id, seconds=interval, replace_existing=True, jitter=30, next_run_time=_next_run_time, end_date=expiry)
+    _interval = int(interval) if interval_unit != 'cron' else interval
+
+    if interval_unit == 'cron':
+        scheduler.add_job(ct.run_monitor_by_id, trigger='cron', args=[monitor_id], id=job_id, replace_existing=True, jitter=30, next_run_time=_next_run_time, end_date=expiry)
+    elif interval_unit in ['s', 'seconds']:
+        scheduler.add_job(ct.run_monitor_by_id, trigger='interval', args=[monitor_id], id=job_id, seconds=_interval, replace_existing=True, jitter=30, next_run_time=_next_run_time, end_date=expiry)
     elif interval_unit in ['m', 'minutes']:
-        scheduler.add_job(ct.run_monitor_by_id, trigger='interval', args=[monitor_id], id=job_id, minutes=interval, replace_existing=True, jitter=30, next_run_time=_next_run_time, end_date=expiry)
+        scheduler.add_job(ct.run_monitor_by_id, trigger='interval', args=[monitor_id], id=job_id, minutes=_interval, replace_existing=True, jitter=30, next_run_time=_next_run_time, end_date=expiry)
     elif interval_unit in ['h', 'hours']:
-        scheduler.add_job(ct.run_monitor_by_id, trigger='interval', args=[monitor_id], id=job_id, hours=interval, replace_existing=True, jitter=30, next_run_time=_next_run_time, end_date=expiry)
+        scheduler.add_job(ct.run_monitor_by_id, trigger='interval', args=[monitor_id], id=job_id, hours=_interval, replace_existing=True, jitter=30, next_run_time=_next_run_time, end_date=expiry)
     elif interval_unit in ['d', 'days']:
-        scheduler.add_job(ct.run_monitor_by_id, trigger='interval', args=[monitor_id], id=job_id, days=interval, replace_existing=True, jitter=30, next_run_time=_next_run_time, end_date=expiry)
+        scheduler.add_job(ct.run_monitor_by_id, trigger='interval', args=[monitor_id], id=job_id, days=_interval, replace_existing=True, jitter=30, next_run_time=_next_run_time, end_date=expiry)
     elif interval_unit in ['w', 'weeks']:
-        scheduler.add_job(ct.run_monitor_by_id, trigger='interval', args=[monitor_id], id=job_id, weeks=interval, replace_existing=True, jitter=30, next_run_time=_next_run_time, end_date=expiry)
+        scheduler.add_job(ct.run_monitor_by_id, trigger='interval', args=[monitor_id], id=job_id, weeks=_interval, replace_existing=True, jitter=30, next_run_time=_next_run_time, end_date=expiry)
     else:
-        raise ValueError('Invalid Interval Unit')
-    logger.info(f"{job_id} scheduled with interval {interval} sec")
+        raise ValueError(f'Invalid Interval Unit for {job_id}: {interval_unit}')
+
+    logger.info(f"{job_id} scheduled: {_interval} ({interval_unit})")
+    return job_id
 
 def manage_job(action: Literal["pause", "resume", "delete"], monitor_id: int):
     job_id = f"monitor#{monitor_id}"

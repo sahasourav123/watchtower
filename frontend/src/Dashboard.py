@@ -68,9 +68,10 @@ placeholder = {
     'DNS': 4,
     'TCP': 5,
     'DATABASE': 6,
+    'EVENT': 7,
 }
 
-rc = st.columns(7)
+rc = st.columns(len(placeholder))
 
 for idx, stat in enumerate(stats):
     monitor_type = stat['monitor_type'].upper()
@@ -80,10 +81,10 @@ for idx, stat in enumerate(stats):
 # ======================================================================
 # Execution Trends
 # ======================================================================
-st.subheader("Checks Performed (Global)")
+st.subheader("Monitor Checked Count (Global)")
 agg_execution_stats, execution_stats_df = backend.get_execution_stats()
 
-rc = st.columns(7)
+rc = st.columns(len(placeholder))
 for idx, stat in enumerate(agg_execution_stats):
     monitor_type = stat['monitor_type'].upper()
     rc[placeholder[monitor_type]].metric(label=monitor_type, value=utils.format_large_number(stat['total_checks'], 0))

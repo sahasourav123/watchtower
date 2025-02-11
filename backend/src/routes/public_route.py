@@ -5,8 +5,10 @@ Created By: Sourav Saha
 """
 import json
 from datetime import datetime
-from fastapi import Response, APIRouter, Body
+from fastapi import Request, Response, APIRouter, Body, Depends, HTTPException, status
 
+from utils import commons
+from utils.commons import logger
 import controller as ct
 import data_model as dm
 import query_engine as qe
@@ -16,6 +18,19 @@ from __version__ import __service__, __version__
 
 public_route = APIRouter()
 DEFAULT_CACHE_EXPIRE = 60
+
+def _validate_hash(request: Request, monitor_id: int, hash: str):
+    try:
+        _hash_ = commons.compute_hash(str(monitor_id))
+    except Exception as e:
+        logger.error(f"Error in hash validation: {e}")
+        _hash_ = None
+
+    if hash != _hash_:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid hash provided for the monitor",
+        )
 
 @public_route.get("/")
 async def root():
@@ -35,7 +50,7 @@ def get_monitor_stats(response: Response):
     return {"status": "success", "data": df.to_dict('records')}
 
 @public_route.get("/stats/execution")
-# @cache(expire=DEFAULT_CACHE_EXPIRE)
+@cache(expire=DEFAULT_CACHE_EXPIRE)
 def get_execution_stats(response: Response):
     daywise_df = qe.daywise_execution_stats()
     final_df = qe.final_execution_stats()
@@ -43,7 +58,7 @@ def get_execution_stats(response: Response):
 
 @public_route.get("/fetch/monitor")
 @cache(expire=DEFAULT_CACHE_EXPIRE)
-def get_monitors(response: Response, org_id: int = None, user_code: str = None):
+def get_monitors(response: Response, user_code: str = None):
     df = qe.get_monitors({'tags': '{guest, public}'})
     return {"status": "success", "data": json.loads(df.to_json(orient='records'))}
 
@@ -59,3 +74,8 @@ def get_monitor_history(response: Response, user_code: str, day_limit: int = 90)
     df = qe.daily_uptime_history({'tags': '{guest, public}'}, day_limit)
     return {"status": "success", 'count': df.shape[0], "data": df.to_dict('records')}
 
+# capture push based monitor
+@public_route.get("/push/event", dependencies=[Depends(_validate_hash)])
+def capture_push_monitor(monitor_id: int, hash: str, outcome: bool = True, response_time: int = 0, response: int = 0):
+    qe.insert_monitor_history(monitor_id, outcome, response, response_time)
+    return {"status": "success", "monitor_id": monitor_id}
