@@ -10,19 +10,20 @@ user_code = auth.ensure_logged_in()
 st.header("Manage Monitors")
 
 def _display_monitor(monitor):
+    monitor_id = monitor['monitor_id']
     _tags = ', '.join([f"`{tag}`" for tag in monitor.get('tags')]) if monitor['tags'] else '`-`'
     title = f"**[{monitor['monitor_type'].upper()}] {monitor['monitor_name']}**"
     st.write(title)
     cc = st.columns([1, 2, 1])
     with cc[0]:
-        _interval = st.text_input(f"Check Interval ({monitor['interval_unit']})", value=monitor['interval'])
+        _interval = st.text_input(f"Edit Check Interval ({monitor['interval_unit']})", value=monitor['interval'])
         if _interval != monitor['interval']:
-            res = backend.update_monitor(user_code, monitor['monitor_id'], {'interval': _interval})
+            res = backend.update_monitor(user_code, monitor_id, {'interval': _interval})
             st.toast("Monitor Interval updated successfully", icon='🟢')
 
-        _timeout = st.text_input("Timeout (sec)", value=monitor['timeout'])
+        _timeout = st.text_input("Edit Timeout (sec)", value=monitor['timeout'])
         if int(_timeout) != monitor['timeout']:
-            res = backend.update_monitor(user_code, monitor['monitor_id'], {'timeout': _timeout})
+            res = backend.update_monitor(user_code, monitor_id, {'timeout': _timeout})
             st.toast(f"Monitor Timeout updated successfully", icon='🟢')
 
     with cc[1]:
@@ -32,17 +33,23 @@ def _display_monitor(monitor):
 
     with cc[2]:
         st.write("Expectation")
-        _expect = yaml.safe_dump(monitor['expectation'], default_flow_style=False) if monitor['expectation'] else "<DEFAULT>"
+        _expect = yaml.safe_dump(monitor['expectation'], default_flow_style=False) if monitor['expectation'] else "<AUTO>"
         st.code(_expect, language='yaml')
+
+    monitor_hash = monitor['monitor_body'].get('hash')
+    if monitor_hash:
+        st.markdown("**Push Event URL**")
+        st.code(f"https://watchtower.finanssure.com/public/v1/push/event?monitor_id={monitor_id}&hash={monitor_hash}&outcome=true&response=0&response_time=0",
+                language='http', wrap_lines=True)
 
     cc = st.columns([1, 1, 1, 3])
 
     if cc[0].button("Run Monitor"):
-        res = backend.run_monitor(user_code, monitor['monitor_id'])
+        res = backend.run_monitor(user_code, monitor_id)
         st.json(res)
 
     if cc[1].button("Pause / Resume"):
-        res = backend.update_monitor(user_code, monitor['monitor_id'], {'is_active': not monitor['is_active']})
+        res = backend.update_monitor(user_code, monitor_id, {'is_active': not monitor['is_active']})
         if res['status'] == 'success':
             _updated_state = 'Paused' if monitor['is_active'] else 'Resumed'
             st.success(f"Monitor {_updated_state} Successfully")
@@ -50,7 +57,7 @@ def _display_monitor(monitor):
             st.error("Failed to pause monitor. Please try again later")
 
     if cc[2].button("Delete Monitor", type='primary'):
-        res = backend.delete_monitor(user_code, monitor['monitor_id'])
+        res = backend.delete_monitor(user_code, monitor_id)
         if res['status'] == 'success':
             st.success("Monitor Deleted Successfully")
         else:
@@ -100,7 +107,7 @@ selected_row_index = selected_row['selection']['rows'][0] if selected_row['selec
 selected_monitor = monitor_df.iloc[selected_row_index or 0]
 
 st.divider()
-st.subheader('Edit Selected Monitor')
+st.subheader('View & Edit Selected Monitor')
 
 if user_code == 'guest':
     st.warning("You are accessing this page as **Guest**. You cannot edit monitors")
