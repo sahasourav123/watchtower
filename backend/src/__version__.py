@@ -7,4 +7,4 @@ automatically updated by the python-semantic-release package.
 DO NOT EDIT IT MANUALLY.
 """
 __service__ = "watchtower-backend"
-__version__ = "0.0.1"
+__version__ = "1.0.0"
