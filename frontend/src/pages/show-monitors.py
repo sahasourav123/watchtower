@@ -1,6 +1,7 @@
 import yaml
 import streamlit as st
 from svc import svc_backend as backend
+from constants import OUTCOME_HISTORY_LIMIT, PUSH_EVENT_ENDPOINT
 
 import auth
 
@@ -36,10 +37,11 @@ def _display_monitor(monitor):
         _expect = yaml.safe_dump(monitor['expectation'], default_flow_style=False) if monitor['expectation'] else "<AUTO>"
         st.code(_expect, language='yaml')
 
+    # Display Event Push URL for the selected monitor
     monitor_hash = monitor['monitor_body'].get('hash')
     if monitor_hash:
         st.markdown("**Push Event URL**")
-        st.code(f"https://watchtower.finanssure.com/public/v1/push/event?monitor_id={monitor_id}&hash={monitor_hash}&outcome=true&response=0&response_time=0",
+        st.code(f"{PUSH_EVENT_ENDPOINT}?monitor_id={monitor_id}&hash={monitor_hash}&outcome=true&response=0&response_time=0",
                 language='http', wrap_lines=True)
 
     cc = st.columns([1, 1, 1, 3])
@@ -68,24 +70,28 @@ def _display_monitor(monitor):
 if user_code == 'guest':
     st.warning("You are accessing this page as **Guest**. Only sample monitors are displayed")
 
-# fetch monitors
-monitor_df = backend.fetch_monitors(user_code)
+@st.cache_data(ttl=60)
+def get_monitors():
+    # fetch monitors & run history
+    _monitor_df = backend.fetch_monitors(user_code)
+    _monito_history_df = backend.fetch_monitor_history(user_code, OUTCOME_HISTORY_LIMIT)
+
+    # merge monitor and history
+    _monitor_df = _monitor_df.merge(_monito_history_df, on='monitor_id', how='left')
+
+    def concat_interval(row):
+        return f"{row['interval']} {row['interval_unit']}" if row['interval_unit'] != 'cron' else row['interval']
+
+    _monitor_df['display_interval'] = _monitor_df.apply(concat_interval, axis=1)
+    return _monitor_df
+
+
+monitor_df = get_monitors()
+st.subheader(f"Monitor List ({monitor_df.shape[0]})")
+
 if monitor_df.empty:
     st.warning("No monitors created yet.")
     st.stop()
-
-# fetch monitor run history
-RECENT_HISTORY_LIMIT = 25
-monito_history_df = backend.fetch_monitor_history(user_code, RECENT_HISTORY_LIMIT)
-
-# merge monitor and history
-monitor_df = monitor_df.merge(monito_history_df, on='monitor_id', how='left')
-
-def concat_interval(row):
-    return f"{row['interval']} {row['interval_unit']}" if row['interval_unit'] != 'cron' else row['interval']
-
-
-monitor_df['display_interval'] = monitor_df.apply(concat_interval, axis=1)
 
 # display monitors
 column_config = {
@@ -95,8 +101,8 @@ column_config = {
     'monitor_type': st.column_config.ListColumn("Type"),
     'is_active': 'Is Active',
     'display_interval': 'Check Interval',
-    'outcomes': st.column_config.BarChartColumn('Recent Outcomes', width='medium', help=f'Last {RECENT_HISTORY_LIMIT} Uptime Check Status'),
-    'response_times': st.column_config.AreaChartColumn('Latency', width='medium', help=f'Last {RECENT_HISTORY_LIMIT} Request Latency'),
+    'outcomes': st.column_config.BarChartColumn('Recent Outcomes', width='medium', help=f'Last {OUTCOME_HISTORY_LIMIT} Uptime Check Status'),
+    'response_times': st.column_config.AreaChartColumn('Latency', width='medium', help=f'Last {OUTCOME_HISTORY_LIMIT} Request Latency'),
     'timeout': 'Timeout (Sec)',
     'expiry': 'Expiry Date',
     'tags': 'Tags',

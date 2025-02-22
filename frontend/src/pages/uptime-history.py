@@ -3,6 +3,7 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 from svc import svc_backend as backend
+from constants import UPTIME_HISTORY_LIMIT
 
 st.set_page_config(layout='wide', page_title='Uptime History', initial_sidebar_state='expanded')
 st.header("Uptime History")
@@ -14,7 +15,7 @@ if user_code == 'guest':
     st.warning("You are accessing this page as **Guest**. Only sample monitors are displayed")
 
 cc = st.columns([1, 4])
-day_limit = cc[0].number_input('Day Limit', value=60, min_value=1, max_value=90)
+day_limit = cc[0].number_input('Day Limit', value=UPTIME_HISTORY_LIMIT, min_value=1, max_value=90)
 uptime_df = backend.fetch_uptime_history(user_code, day_limit)
 selected_monitor_group = cc[1].multiselect('Select Monitor Group(s)', uptime_df['monitor_group'].unique())
 
@@ -86,21 +87,3 @@ for monitor_group, monitor_df_grouped in uptime_df.groupby('monitor_group'):
         cc = st.columns([6, 1])
         cc[0].plotly_chart(fig)
         cc[1].metric('Mean Uptime', f"{avg_uptime:.1f}%")
-
-st.divider()
-st.subheader("Response Time Statistics")
-# filter df for monitor type: api, website, server
-filter_monitor_type = st.radio('Select Monitor Type', sorted(uptime_df['monitor_type'].unique()), horizontal=True)
-filtered_df = uptime_df[uptime_df['monitor_type'] == filter_monitor_type]
-
-# Box Plot for Avg Response Time
-fig4 = px.box(filtered_df, x='monitor_name', y='avg_rt', title='Average Response Time Distribution')
-fig4.update_layout(yaxis_title='Average Response Time (ms)', xaxis_title='Monitor Name')
-
-# Box Plot for P90 Response Time
-fig5 = px.box(filtered_df, x='monitor_name', y='p90_rt', title='90th Percentile Response Time Distribution')
-fig5.update_layout(yaxis_title='90th Percentile Response Time (ms)', xaxis_title='Monitor Name')
-
-# Show the figures
-st.plotly_chart(fig4)
-st.plotly_chart(fig5)

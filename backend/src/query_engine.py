@@ -16,7 +16,7 @@ def monitor_stats(user_code: str = None):
     """
     return db.query(sql)
 
-def daywise_execution_stats(day_limit: int = 90):
+def daily_uptime_stats(day_limit: int = 90):
     sql = f"""
     select date(date) as date, sum(total) as total_count
     from mv_uptime
@@ -26,18 +26,27 @@ def daywise_execution_stats(day_limit: int = 90):
     """
     return db.query(sql)
 
-def final_execution_stats():
+def aggregated_uptime_stats():
     sql = f"""select monitor_type, sum(total) as total_checks 
     from vw_uptime_summary
     group by monitor_type
     """
     return db.query(sql)
 
-def response_stats(user_code: str = None):
-    sql = f"""select * from vw_daily_stats
-    {f"where user_code = '{user_code}'" if user_code else ""}
+
+def daily_response_stats(filters: dict):
+    sql = f"""select * 
+    from vw_daily_response_stats
+    where {_builder(filters)}
     """
-    return db.query(sql)
+    return db.query(sql, filters)
+
+def aggregated_response_stats(filters: dict):
+    sql = f"""select * 
+    from vw_agg_response_stats
+    where {_builder(filters)}
+    """
+    return db.query(sql, filters)
 
 
 def _builder(filters: dict):

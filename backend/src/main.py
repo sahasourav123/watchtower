@@ -15,6 +15,7 @@ from fastapi_redis_cache import FastApiRedisCache
 
 from routes.public_route import public_route
 from routes.internal_route import internal_route
+from routes.protected_route import protected_route
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -44,5 +45,6 @@ app = FastAPI(
 )
 
 # include routes in app
-app.include_router(public_route, tags=['public'], prefix='/public/v1')
-app.include_router(internal_route, tags=['internal'], prefix='/internal/v1')
+app.include_router(internal_route, tags=['internal'], prefix='/api/v1/internal')
+app.include_router(public_route, tags=['public'], prefix='/api/v1/public')
+app.include_router(protected_route, tags=['external'], prefix='/api/v1/external')

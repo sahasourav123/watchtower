@@ -169,7 +169,7 @@ def ensure_logged_in(required_access_level='guest'):
         return _default_user()
 
     elif not user_code:
-        st.error('Login Required')
+        st.error('Login Required to access this Page')
         st.stop()
 
     # fetch user information

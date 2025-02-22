@@ -11,6 +11,7 @@ import controller as ct
 import data_model as dm
 import query_engine as qe
 from utils import commons
+from typing import Literal
 
 from fastapi_redis_cache import cache
 from utils.db_util import RedisManager
@@ -75,10 +76,14 @@ def get_monitor_stats(response: Response, user_code: str):
     df = qe.monitor_stats(user_code)
     return {"status": "success", "data": df.to_dict('records')}
 
-@internal_route.get("/stats/response")
+@internal_route.get("/stats/response/{scope}")
 @cache(expire=DEFAULT_CACHE_EXPIRE)
-def get_response_stats(response: Response, user_code: str):
-    df = qe.response_stats(user_code)
+def get_response_stats(response: Response, scope: Literal['aggregated', 'daily'], user_code: str):
+    if scope == 'aggregated':
+        df = qe.aggregated_response_stats({'user_code': user_code})
+    else:
+        df = qe.daily_response_stats({'user_code': user_code})
+
     return {"status": "success", "data": df.to_dict('records')}
 
 # get recent history

@@ -6,6 +6,7 @@ Created By: Sourav Saha
 import json
 from datetime import datetime
 from fastapi import Request, Response, APIRouter, Body, Depends, HTTPException, status
+from typing import Literal
 
 from utils import commons
 from utils.commons import logger
@@ -19,18 +20,18 @@ from __version__ import __service__, __version__
 public_route = APIRouter()
 DEFAULT_CACHE_EXPIRE = 60
 
-def _validate_hash(request: Request, monitor_id: int, hash: str):
+def _validate_hash(request: Request, monitor_id: int, monitor_hash: str):
     try:
-        _hash_ = commons.compute_hash(str(monitor_id))
+        computed_hash = commons.compute_hash(str(monitor_id))
+        if monitor_hash == computed_hash:
+            return True
     except Exception as e:
         logger.error(f"Error in hash validation: {e}")
-        _hash_ = None
 
-    if hash != _hash_:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid hash provided for the monitor",
-        )
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid hash provided for the monitor",
+    )
 
 @public_route.get("/")
 async def root():
@@ -52,13 +53,13 @@ def get_monitor_stats(response: Response):
 @public_route.get("/stats/execution")
 @cache(expire=DEFAULT_CACHE_EXPIRE)
 def get_execution_stats(response: Response):
-    daywise_df = qe.daywise_execution_stats()
-    final_df = qe.final_execution_stats()
+    daywise_df = qe.daily_uptime_stats()
+    final_df = qe.aggregated_uptime_stats()
     return {"status": "success", "agg": final_df.to_dict('records'),  "data": daywise_df.to_dict('records')}
 
 @public_route.get("/fetch/monitor")
 @cache(expire=DEFAULT_CACHE_EXPIRE)
-def get_monitors(response: Response, user_code: str = None):
+def get_monitors(response: Response):
     df = qe.get_monitors({'tags': '{guest, public}'})
     return {"status": "success", "data": json.loads(df.to_json(orient='records'))}
 
@@ -70,12 +71,22 @@ def get_recent_monitor_history(limit: int = 10):
 
 @public_route.get("/fetch/uptime", tags=['uptime'])
 @cache(expire=DEFAULT_CACHE_EXPIRE)
-def get_monitor_history(response: Response, user_code: str, day_limit: int = 90):
+def get_monitor_history(response: Response, day_limit: int = 90):
     df = qe.daily_uptime_history({'tags': '{guest, public}'}, day_limit)
     return {"status": "success", 'count': df.shape[0], "data": df.to_dict('records')}
 
+@public_route.get("/stats/response/{scope}")
+@cache(expire=DEFAULT_CACHE_EXPIRE)
+def get_response_stats(response: Response, scope: Literal['aggregated', 'daily']):
+    if scope == 'aggregated':
+        df = qe.aggregated_response_stats({'tags': '{guest, public}'})
+    else:
+        df = qe.daily_response_stats({'tags': '{guest, public}'})
+
+    return {"status": "success", "data": df.to_dict('records')}
+
 # capture push based monitor
 @public_route.get("/push/event", dependencies=[Depends(_validate_hash)])
-def capture_push_monitor(monitor_id: int, hash: str, outcome: bool = True, response_time: int = 0, response: int = 0):
+def capture_push_monitor(monitor_id: int, monitor_hash: str, outcome: bool = True, response_time: int = 0, response: int = 0):
     qe.insert_monitor_history(monitor_id, outcome, response, response_time)
     return {"status": "success", "monitor_id": monitor_id}

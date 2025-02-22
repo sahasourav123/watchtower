@@ -140,8 +140,22 @@ SELECT add_continuous_aggregate_policy('mv_stats',
     schedule_interval => INTERVAL '1 minute'
 );
 
-drop view if exists vw_daily_stats;
-create or replace view vw_daily_stats as
+-- Daily Response Statistics
+drop view if exists vw_daily_response_stats;
+create or replace view vw_daily_response_stats as
+with agg_stats as (
+    select *
+    from mv_stats
+)
+select m.monitor_group, m.monitor_name, m.monitor_type, m.user_code, agg_stats.*, m.tags
+from agg_stats
+join monitors m on m.monitor_id = agg_stats.monitor_id
+where user_code = 'i009'
+order by monitor_id, is_success, last_check_time desc;
+
+-- Aggregated Response Statistics
+drop view if exists vw_agg_response_stats;
+create or replace view vw_agg_response_stats as
 with agg_stats as (
     select monitor_id,
         response, is_success,
@@ -150,9 +164,9 @@ with agg_stats as (
     from mv_stats
     group by monitor_id, is_success, response
 )
-select m.monitor_group, m.monitor_name, m.monitor_type, m.user_code, agg_stats.*
+select m.monitor_group, m.monitor_name, m.monitor_type, m.user_code, agg_stats.*, m.tags
 from agg_stats
-right join monitors m on m.monitor_id = agg_stats.monitor_id
+join monitors m on m.monitor_id = agg_stats.monitor_id
 order by monitor_id, is_success, last_check_time desc;
 
 
@@ -170,5 +184,6 @@ order by date;
 select sum(total) as total_checks from mv_uptime;
 
 --
-select * from vw_daily_stats;
 select * from vw_uptime_summary;
+select * from vw_daily_response_stats;
+select * from vw_agg_response_stats;

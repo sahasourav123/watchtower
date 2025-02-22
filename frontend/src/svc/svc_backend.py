@@ -6,9 +6,9 @@ import requests
 import streamlit as st
 from utils import logger
 
-BACKEND_SERVICE = os.getenv('BACKEND_SERVICE', 'http://backend:8000')
-PUBLIC_ROUTE = f"{BACKEND_SERVICE}/public/v1"
-INTERNAL_ROUTE = f"{BACKEND_SERVICE}/internal/v1"
+BACKEND_SERVICE = os.getenv('BACKEND_SERVICE', 'http://backend:8000/api/v1')
+PUBLIC_ROUTE = f"{BACKEND_SERVICE}/public"
+INTERNAL_ROUTE = f"{BACKEND_SERVICE}/internal"
 
 @st.cache_data(ttl=1800)
 def load_service():
@@ -25,22 +25,6 @@ def run_monitor(user_code: str, monitor_id: int):
     url = f"{INTERNAL_ROUTE}/run/monitor/{monitor_id}?user_code={user_code}"
     res = requests.get(url)
     return res.json()
-
-def get_monitor_stats(user_code: str):
-    if user_code == 'guest':
-        res = requests.get(f"{PUBLIC_ROUTE}/stats/global")
-    else:
-        res = requests.get(f"{INTERNAL_ROUTE}/stats/monitor?user_code={user_code}")
-    return res.json()['data']
-
-def get_response_stats(user_code: str):
-    res = requests.get(f"{INTERNAL_ROUTE}/stats/response?user_code={user_code}")
-    return res.json()['data']
-
-def get_execution_stats():
-    res = requests.get(f"{PUBLIC_ROUTE}/stats/execution")
-    result = res.json()
-    return result['agg'], pd.DataFrame(result['data']).set_index('date')
 
 def create_monitor(monitor_type, monitor_group, monitor_name, monitor_body, timeout, interval, interval_unit, expiry: date, monitor_expectation, alerts, monitor_tags, user_code, org_code=None):
     url = f'{INTERNAL_ROUTE}/create/monitor?user_code={user_code}&monitor_type={monitor_type}'
@@ -96,17 +80,62 @@ def _fetch_api_data(url, params) -> pd.DataFrame:
 
 @st.cache_data(ttl=60)
 def fetch_monitors(user_code: str):
-    endpoint = f"{PUBLIC_ROUTE}/fetch/monitor" if user_code == 'guest' else f"{INTERNAL_ROUTE}/fetch/monitor"
+    if user_code == 'guest':
+        endpoint = f"{PUBLIC_ROUTE}/fetch/monitor"
+        return _fetch_api_data(endpoint, params=None)
+
+    endpoint = f"{INTERNAL_ROUTE}/fetch/monitor"
     return _fetch_api_data(endpoint, params={'user_code': user_code})
 
+@st.cache_data(ttl=60)
 def fetch_monitor_history(user_code: str, limit: int):
-    endpoint = f"{PUBLIC_ROUTE}/fetch/history" if user_code == 'guest' else f"{INTERNAL_ROUTE}/fetch/history"
+    if user_code == 'guest':
+        endpoint = f"{PUBLIC_ROUTE}/fetch/history"
+        return _fetch_api_data(endpoint, params={'limit': limit})
+
+    endpoint = f"{INTERNAL_ROUTE}/fetch/history"
     return _fetch_api_data(endpoint, params={'user_code': user_code, 'limit': limit})
 
 @st.cache_data(ttl=60)
 def fetch_uptime_history(user_code, day_limit):
     endpoint = f"{PUBLIC_ROUTE}/fetch/uptime" if user_code == 'guest' else f"{INTERNAL_ROUTE}/fetch/uptime"
     return _fetch_api_data(endpoint, params={'user_code': user_code, 'day_limit': day_limit})
+
+
+# ==============================================================
+# STATS
+# ==============================================================
+@st.cache_data(ttl=60)
+def get_monitor_stats(user_code: str):
+    if user_code == 'guest':
+        res = requests.get(f"{PUBLIC_ROUTE}/stats/global")
+    else:
+        res = requests.get(f"{INTERNAL_ROUTE}/stats/monitor?user_code={user_code}")
+    return res.json()['data']
+
+@st.cache_data(ttl=60)
+def get_daily_response_stats(user_code: str):
+    if user_code == 'guest':
+        res = requests.get(f"{PUBLIC_ROUTE}/stats/response/daily")
+    else:
+        res = requests.get(f"{INTERNAL_ROUTE}/stats/response/daily?user_code={user_code}")
+
+    return pd.DataFrame(res.json()['data'])
+
+@st.cache_data(ttl=60)
+def get_agg_response_stats(user_code: str):
+    if user_code == 'guest':
+        res = requests.get(f"{PUBLIC_ROUTE}/stats/response/aggregated")
+    else:
+        res = requests.get(f"{INTERNAL_ROUTE}/stats/response/aggregated?user_code={user_code}")
+
+    return pd.DataFrame(res.json()['data'])
+
+@st.cache_data(ttl=60)
+def get_execution_stats():
+    res = requests.get(f"{PUBLIC_ROUTE}/stats/execution")
+    result = res.json()
+    return result['agg'], pd.DataFrame(result['data']).set_index('date')
 
 # ==============================================================
 # ALERTS
