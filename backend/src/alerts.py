@@ -25,9 +25,15 @@ def alert_manager(monitor, state: str):
 
 def webhook_alert(monitor: dict, recipient: dict, state):
     payload = {
-        'text': f"{monitor['monitor_name']} (Monitor #{monitor['monitor_id']}) is {state}."
+        'monitor_id': monitor['monitor_id'],
+        'monitor_name': monitor['monitor_name'],
+        'state': state,
     }
-    response = requests.post(recipient['url'], json=payload, headers={'Content-Type': 'application/json', **recipient.get('headers', {})})
+    response = requests.post(
+        recipient['url'], json=payload,
+        headers={'Content-Type': 'application/json', **recipient.get('headers', {})},
+        timeout=5
+    )
     print(response.text)
 
 def email_alert(monitor: dict, email_id: str, state):

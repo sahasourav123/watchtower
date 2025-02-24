@@ -9,7 +9,7 @@ Project is live for Public use at [The Watchtower](https://watchtower.finanssure
 1. **Simple** - Clutter-free design. Minimal input required.
 2. **Effective** - Developer friendly
 3. **Open Source** - You can contribute and make it better
-4. **Versatile** - You can use it for i.e. APIs, websites, servers and databases.
+4. **Versatile** - You can use it for i.e. APIs, websites, servers, databases & Events
 5. **Manageable** - You can manage configs through UI, API and Config as Code.
 6. **Cloud Agnostic** - Run it on your own server or any cloud
 7. **Extensible** - You can add plugins & connector for different services
@@ -24,37 +24,37 @@ Project is live for Public use at [The Watchtower](https://watchtower.finanssure
 1. [x] Create monitor
 2. [x] View & Manage monitors
 3. [x] View Uptime History 
-4. [ ] View history & connection statistics
+4. [x] View Response statistics
 5. [ ] Public / Private status page
-6. [ ] Create Alert Rules
-7. [ ] Send alerts in different channel
+6. [x] Create Alert Rules
+7. [x] Send alerts in different channel
 8. [ ] Organisation & User management
 9. [ ] Manage configs through API
 10. [ ] Manage configs through CLI / CI Pipeline
 
-# Supported Checks (Developed: 6 | Planned: 7)
-| Group          | Check                       | Description           | Interval     |
-|----------------|-----------------------------|-----------------------|--------------|
-| Microservices  | APIs                        | REST, GraphQL, SOAP   | 1 minute(s)+ |
-| Sites          | Websites Availability       | HTTP, HTTPS           | 1 minute(s)+ |
-|                | Page Speed Test _(planned)_ |                       |              |
-| Events         | Push Based _(planned)_      | Job Completion Status | 1 minute(s)+ |
-| Domains        | SSL Certificate Expiry      |                       | 1 week(s)+   |
-|                | Domain Expiry               |                       | 1 week(s)+   |
-|                | DNS Lookup                  |                       | 1 week(s)+   |
-| Databases      | Database Connection         | Postgres, Redis, ...  | 5 minute(s)+ |
-| Websockets     | _(planned)_                 |                       |              |
-| Servers        | Remote Servers _(planned)_  | SSH, RDP              |              |
-|                | Email _(planned)_           | SMTP, POP3, IMAP      |              |
-|                | File Servers _(planned)_    | FTP, SFTP             |              |
-| Message Queues | _(planned)_                 | RabbitMQ, Kafka, SQS  |              |
+# Supported Checks (Developed: 7 | **Planned: 14)
+| #  | Group            | Monitoring             | Intervals         |
+|----|------------------|------------------------|-------------------|
+| 1  | Microservices    | APIs                   | 1 minute or above |
+| 2  | Sites            | Websites Availability  | 1 minute or above |
+| 3  |                  | **Page Speed Test      | 1 day or above    |
+| 4  | Domains          | SSL Certificate Expiry | 1 day or above    |
+| 5  |                  | Domain Expiry          | 1 day or above    |
+| 6  |                  | DNS Lookup             | 1 day or above    |
+| 7  | Events & Jobs    | **Periodic Job (Cron)  | Push Based        |
+| 8  |                  | Asynchronous Event     | Push Based        |
+| 9  | Databases        | Postgres               | 5 minute or above |
+| 10 |                  | **ElasticSearch        | 5 minute or above |
+| 11 |                  | **Redis                | 5 minute or above |
+| 12 | Servers          | **Remote Servers       |                   |
+| 13 |                  | **Email Servers        |                   |
+| 14 |                  | **File Servers         |                   |
 
 
-## Supported Alerting Channels (Developed: 0 | Planned: 4)
-1. [ ] Email
-2. [ ] Teams
-3. [ ] Slack
-4. [ ] Webhook
+## Supported Alerting Channels (Developed: 3 | Planned: 3)
+1. [x] Email
+2. [x] Slack
+3. [x] Webhook
 
 # Your contribution is appreciated
 1. Scaling the system with container orchestration for public use
@@ -65,7 +65,7 @@ Project is live for Public use at [The Watchtower](https://watchtower.finanssure
 # Development Setup
 1. Clone the repository
 ```bash
-git clone https://github.com/sahasourav123/the-watchtower.git
+git clone https://github.com/sahasourav123/watchtower.git
 ```
 2. Setup a virtual environment
 ```bash

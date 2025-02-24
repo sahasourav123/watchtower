@@ -31,10 +31,9 @@ st.markdown(f"<style>{style}</style>", unsafe_allow_html=True)
 # ======================================================================
 # Google Analytics Tracking
 # ======================================================================
-env = os.getenv('ENV', 'development')
-if env == 'production':
+if os.getenv('ENV') == 'production':
     tracking_script = f"""
-        <!-- Google Analytics (screener-web) -->
+        <!-- Google Analytics (watchtower) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id={os.getenv('GTAG')}"></script>
         <script>
           window.dataLayer = window.dataLayer || [];
