@@ -36,5 +36,5 @@ jobs:
       run: AUTH_ENABLED=true docker compose -p project-watchtower up -d frontend
 
     - name: Push Deploy Event
-      run: curl "https://watchtower.finanssure.com/public/v1/push/event?monitor_id=${{ secrets.WT_MONITOR_ID }}&hash=${{ secrets.WT_MONITOR_HASH }}&outcome=true"
+      run: curl "https://watchtower.finanssure.com/api/v1/public/push/event?monitor_id=${{ secrets.WT_MONITOR_ID }}&monitor_hash=${{ secrets.WT_MONITOR_HASH }}&outcome=true"
 
