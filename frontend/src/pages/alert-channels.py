@@ -3,6 +3,7 @@ Created on: 23 Sep 2024
 @author: SouravS
 """
 import os
+import json
 import streamlit as st
 import auth
 import logging
@@ -46,9 +47,9 @@ def create_alert_channel():
             recipient = {
                 "url": url,
                 "method": method,
-                "headers": eval(headers) if headers else {},
+                "headers": json.loads(headers) if headers else {},
             } if url else None
-        except Exception as e:
+        except json.JSONDecodeError as e:
             st.error(f"Invalid Headers: {e}")
             recipient = None
 
