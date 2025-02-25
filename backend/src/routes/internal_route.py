@@ -60,8 +60,8 @@ def get_monitors(response: Response, user_code: str = None):
 # run monitor
 @internal_route.get("/run/monitor/{monitor_id}")
 def run_monitor(monitor_id: int, user_code: str):
-    outcome = ct.run_monitor_by_id(monitor_id)
-    return {'is_success': outcome}
+    result = ct.run_monitor_by_id(monitor_id)
+    return result if isinstance(result, dict) else {'monitor_id': monitor_id, 'is_success': result}
 
 
 """

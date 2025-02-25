@@ -41,8 +41,14 @@ async def root():
 # check status
 @public_route.get("/check")
 def check_status(monitor_type: dm.MonitorTypes, monitor_body: dict = Body(...)):
-    result = ct.run_monitor(monitor_type, monitor_body)
-    return result
+    try:
+        result = ct.run_monitor(monitor_type, monitor_body)
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
 @public_route.get("/stats/global")
 @cache(expire=DEFAULT_CACHE_EXPIRE)

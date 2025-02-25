@@ -54,23 +54,13 @@ def delete_monitor(user_code: str, monitor_id: int):
 def run_monitor(monitor_type: str, monitor_body: dict) -> dict:
     target = monitor_body.get('url') or monitor_body.get('host')
     if not target:
-        return {
-            'is_success': False,
-            'response_code': None,
-            'response_time_ms': None,
-            'message': 'Invalid monitor body'
-        }
+        raise Exception('Invalid monitor body')
 
     # SSRF
     blacklist = config.get('blacklist', []) + os.getenv('BLACKLIST_HOSTS', '').split(',')
     for item in blacklist:
         if bool(re.search(item, target)):
-            return {
-                'is_success': False,
-                'response_code': None,
-                'response_time_ms': None,
-                'message': 'Target Blacklisted'
-            }
+            raise Exception('Target Blacklisted')
 
     start_time = time.time()
     try:
@@ -129,10 +119,9 @@ def run_monitor_by_id(monitor_id):
 
     try:
         result = run_monitor(monitor_type, monitor['monitor_body'])
-        # print(f"Executed Monitor ID: {monitor_id}")
     except Exception as e:
         logger.error(f"Error running monitor: {monitor_id} | {str(e)}")
-        return False
+        return {'error': str(e)}
 
     if monitor_type == 'api':
         outcome = apis.validate_outcome(monitor, result)
