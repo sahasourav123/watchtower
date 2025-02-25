@@ -82,7 +82,7 @@ def run_monitor(monitor_type: str, monitor_body: dict) -> dict:
             case 'domain':
                 outcome, response = sites.check_domain_expiry(monitor_body['host'])
             case 'database':
-                outcome, response = databases.check_status(monitor_body['host'])
+                outcome, response = databases.check_status(monitor_body)
             case 'ssl':
                 outcome, response = sites.check_certificate_expiry(monitor_body['host'])
             case 'tcp':
