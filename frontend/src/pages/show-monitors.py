@@ -15,25 +15,43 @@ def _display_monitor(monitor):
     _tags = ', '.join([f"`{tag}`" for tag in monitor.get('tags')]) if monitor['tags'] else '`-`'
     title = f"**[{monitor['monitor_type'].upper()}] {monitor['monitor_name']}**"
     st.write(title)
+
+    cc = st.columns([2, 1])
+    with cc[0]:
+        # Edit Monitor Name
+        _name = st.text_input("Edit Monitor Name", value=monitor['monitor_name'])
+        if _name != monitor['monitor_name']:
+            res = backend.update_monitor(user_code, monitor_id, {'monitor_name': _name})
+            st.toast("Monitor Name updated successfully", icon='🟢')
+
+    with cc[1]:
+        # Edit Monitor Group
+        _group = st.text_input("Edit Monitor Group", value=monitor['monitor_group'])
+        if _group != monitor['monitor_group']:
+            res = backend.update_monitor(user_code, monitor_id, {'monitor_group': _group})
+            st.toast("Monitor Group updated successfully", icon='🟢')
+
     cc = st.columns([1, 2, 1])
     with cc[0]:
+        # Edit Check Interval
         _interval = st.text_input(f"Edit Check Interval ({monitor['interval_unit']})", value=monitor['interval'])
         if _interval != monitor['interval']:
             res = backend.update_monitor(user_code, monitor_id, {'interval': _interval})
             st.toast("Monitor Interval updated successfully", icon='🟢')
 
+        # Edit Timeout
         _timeout = st.text_input("Edit Timeout (sec)", value=monitor['timeout'])
         if int(_timeout) != monitor['timeout']:
             res = backend.update_monitor(user_code, monitor_id, {'timeout': _timeout})
             st.toast(f"Monitor Timeout updated successfully", icon='🟢')
 
     with cc[1]:
-        st.write(f"Monitor Config")
+        st.write(f"Monitor Config (read-only)")
         _config = yaml.safe_dump(monitor['monitor_body'], default_flow_style=False)
         st.code(_config, language='yaml')
 
     with cc[2]:
-        st.write("Expectation")
+        st.write("Expectation (read-only)")
         _expect = yaml.safe_dump(monitor['expectation'], default_flow_style=False) if monitor['expectation'] else "<AUTO>"
         st.code(_expect, language='yaml')
 

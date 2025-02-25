@@ -7,8 +7,11 @@ import streamlit as st
 import logging
 logger = logging.getLogger()
 
-USER_API_SERVICE = os.getenv('USER_API', 'http://config-api:8000')
+USER_API_SERVICE = os.getenv('USER_API')
 tz = pytz.timezone('Asia/Kolkata')
+
+if not USER_API_SERVICE:
+    logger.warning(f"Env Variable USER_API_SERVICE not found. | Authentication workflow won't work.")
 
 # =============================================================================
 # MANAGE User & Client
