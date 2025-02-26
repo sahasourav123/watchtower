@@ -11,7 +11,7 @@ def alert_manager(monitor, state: str):
     else:
         channel_ids = monitor['alerts']
 
-    alert_channels = qe.get_alert_channel({'channel_id': channel_ids})
+    alert_channels = qe.get_alert_channel({'channel_id': channel_ids, 'is_active': True})
 
     if not alert_channels.empty:
         for idx, channel in alert_channels.iterrows():

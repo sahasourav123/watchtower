@@ -29,7 +29,8 @@ def _validate_hash(request: Request, monitor_id: int, monitor_hash: str):
 @public_route.get("/")
 async def root():
     dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    return {"service": __service__, 'version': __version__, 'server-time': dt}
+    alert_channels = qe.get_alert_channel({'channel_id': [2, 4], 'is_active': True})
+    return {"service": __service__, 'version': __version__, 'server-time': dt, 'data': str(alert_channels.to_dict('records'))}
 
 # check status
 @public_route.get("/check")
