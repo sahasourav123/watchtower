@@ -1,5 +1,4 @@
 import os
-import re
 import json
 import psycopg2
 import socket
@@ -19,7 +18,7 @@ class RedisManager:
     # common methods
     # ===========================================
     def set(self, key, value, ttl=None):
-        self.conn.set(key, json.dumps(value), ex=ttl)
+        self.conn.set(key, json.dumps(value) if isinstance(value, dict) else value, ex=ttl)
 
     def get(self, key: str, expected_type=str):
         val = self.conn.get(key)
