@@ -35,16 +35,40 @@ async def lifespan(app: FastAPI):
 
 
 # Application setup
+description = """
+Open Source Uptime Monitor for APIs, Websites, Events etc. with real-time alert. 🚀
+
+## Public Endpoints - /api/v1/external/
+* Can be invoked from anywhere without any authentication
+* IP level Rate Limit applies
+
+## External Endpoints - /api/v1/external/
+* Must be used with **x-api-key** header
+* User Level Rate Limit applies
+
+## Internal Endpoints - /api/v1/internal/
+* Can NOT be invoked from outside world.
+"""
 app = FastAPI(
     title=__service__.title(),
     version=__version__,
     lifespan=lifespan,
-    # openapi_tags=tags_metadata,
-    # redoc_url=f"{BASE_ROUTE}/redoc",
-    # docs_url=f"{BASE_ROUTE}/docs",
+    description=description,
+    redoc_url=f"/api/v1/redoc",
+    docs_url=f"/api/v1/docs",
+    terms_of_service="https://www.finanssure.com/privacy/",
+    contact={
+        "name": "Finanssure",
+        "url": "https://www.finanssure.com/watchtower/",
+        "email": "support@finanssure.com",
+    },
+    license_info={
+        "name": "MIT",
+        "identifier": "MIT",
+    },
 )
 
 # include routes in app
-app.include_router(internal_route, tags=['internal'], prefix='/api/v1/internal')
+app.include_router(internal_route, prefix='/api/v1/internal')
 app.include_router(public_route, tags=['public'], prefix='/api/v1/public')
-app.include_router(protected_route, tags=['external'], prefix='/api/v1/external')
+app.include_router(protected_route, prefix='/api/v1/external')

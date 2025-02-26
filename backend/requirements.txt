@@ -6,9 +6,9 @@ rich==13.9.4
 requests==2.32.3
 pandas==2.2.3
 envyaml==1.10.211231
-apscheduler==3.10.4
-psycopg2-binary==2.9.9
+apscheduler==3.11.0
+psycopg2-binary==2.9.10
 python-dotenv==1.0.1
-SQLAlchemy==2.0.37
+SQLAlchemy==2.0.38
 python-whois==0.9.5
 dnspython==2.6.1

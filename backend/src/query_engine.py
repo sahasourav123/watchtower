@@ -95,14 +95,14 @@ def update_monitor(user_code: str, monitor_id: int, data: dict) -> int:
         WHERE monitor_id = {monitor_id} and user_code = '{user_code}'
         """
     r = db.update(sql, data)
-    logger.info(f"Updated Monitor with id {monitor_id}")
+    logger.info(f"Updated Monitor #{monitor_id} | User: {user_code} | Impacted Rows: {r}")
     return r
 
 def delete_monitor(user_code: str, monitor_id: int):
     logger.info(f"Deleting monitor: #{monitor_id}")
     sql = f"delete from monitors where monitor_id = {monitor_id} and user_code = '{user_code}'"
-    db.query(sql)
-    logger.info(f"Deleted Monitor with id {monitor_id}")
+    r = db.delete(sql)
+    logger.info(f"Deleted Monitor #{monitor_id} | User: {user_code} | Impacted Rows: {r}")
 
 # fetch recent history
 def fetch_recent_history_by_org(org_id: int, limit: int = 10):
@@ -177,6 +177,6 @@ def insert_alert_channel(data) -> int:
 
 def delete_alert_channel(channel_id):
     sql = f"""delete from alert_channel where channel_id = {channel_id}"""
-    r = db.query(sql)
+    r = db.delete(sql)
     logger.debug(f"ALERT #{channel_id} deleted from database")
     return r

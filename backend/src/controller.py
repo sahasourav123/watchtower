@@ -1,7 +1,6 @@
 import os
 import re
 import time
-import yaml
 from utils import commons
 from utils.commons import logger
 
@@ -14,9 +13,7 @@ import alerts
 
 rd = RedisManager()
 db = DatabaseManager()
-
-with open('config.yaml') as config_file:
-    config = yaml.safe_load(config_file)
+config = commons.load_config()
 
 def create_monitor(user_code: str, monitor_type: dm.MonitorTypes, monitor_data: dm.MonitorModel) -> (int, str):
     data = {**monitor_data.model_dump(), 'monitor_type': monitor_type, 'user_code': user_code}
@@ -35,7 +32,9 @@ def create_monitor(user_code: str, monitor_type: dm.MonitorTypes, monitor_data: 
 def update_monitor(user_code: str, monitor_id: int, monitor_data: dm.MonitorModel) -> bool:
     count = qe.update_monitor(user_code, monitor_id, monitor_data.model_dump(exclude_none=True))
 
-    if count > 0 and monitor_data.interval:
+    if count == 0:
+        return False
+    elif count > 0 and monitor_data.interval:
         sch.create_job(monitor_id, monitor_data.interval, monitor_data.interval_unit, monitor_data.expiry)
     elif count > 0 and monitor_data.is_active is False:
         sch.manage_job('pause', monitor_id)
@@ -45,11 +44,13 @@ def update_monitor(user_code: str, monitor_id: int, monitor_data: dm.MonitorMode
     return True
 
 # delete monitor
-def delete_monitor(user_code: str, monitor_id: int):
+def delete_monitor(user_code: str, monitor_id: int) -> bool:
     count = qe.delete_monitor(user_code, monitor_id)
-    if count > 0:
-        sch.manage_job('delete', monitor_id)
-    return {"status": "success"}
+    if count == 0:
+        return False
+
+    sch.manage_job('delete', monitor_id)
+    return True
 
 def run_monitor(monitor_type: str, monitor_body: dict) -> dict:
     target = monitor_body.get('url') or monitor_body.get('host')
@@ -101,12 +102,18 @@ def alert_qualifier(monitor: dict, outcome: bool):
     # get last outcome
     last_state = rd.get(_key)
 
-    if state != last_state:
+    # no alert for first run
+    if last_state is None and state == 'UP':
+        rd.set(_key, state)
+
+    # send alert upon state change
+    elif state != last_state:
+        # update last outcome
+        rd.set(_key, state)
+
         # send alert
         alerts.alert_manager(monitor, state)
 
-        # update last outcome
-        rd.set(_key, state)
     pass
 
 def run_monitor_by_id(monitor_id):

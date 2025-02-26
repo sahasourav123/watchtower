@@ -64,22 +64,22 @@ def _display_monitor(monitor):
 
     cc = st.columns([1, 1, 1, 3])
 
-    if cc[0].button("Run Monitor"):
+    if cc[0].button(":material/bolt: Run Monitor"):
         res = backend.run_monitor(user_code, monitor_id)
         st.json(res)
 
-    if cc[1].button("Pause / Resume"):
+    if cc[1].button(":material/play_pause: Pause / Resume"):
         res = backend.update_monitor(user_code, monitor_id, {'is_active': not monitor['is_active']})
         if res['status'] == 'success':
             _updated_state = 'Paused' if monitor['is_active'] else 'Resumed'
-            st.success(f"Monitor {_updated_state} Successfully")
+            st.rerun()
         else:
             st.error("Failed to pause monitor. Please try again later")
 
-    if cc[2].button("Delete Monitor", type='primary'):
+    if cc[2].button(":material/delete: Delete Monitor", type='primary'):
         res = backend.delete_monitor(user_code, monitor_id)
         if res['status'] == 'success':
-            st.success("Monitor Deleted Successfully")
+            st.rerun()
         else:
             st.error("Failed to delete monitor. Please try again later")
     pass

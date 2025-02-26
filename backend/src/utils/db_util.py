@@ -13,14 +13,53 @@ import redis
 class RedisManager:
 
     def __init__(self):
-        self.conn = redis.Redis.from_url(os.getenv('REDIS_URL', 'redis://redis:6379/0'))
+        self.conn = redis.Redis.from_url(os.getenv('REDIS_URL', 'redis://redis:6379/0'), decode_responses=True)
 
+    # ===========================================
+    # common methods
+    # ===========================================
     def set(self, key, value, ttl=None):
-        self.conn.set(key, value, ex=ttl)
+        self.conn.set(key, json.dumps(value), ex=ttl)
 
-    def get(self, key):
+    def get(self, key: str, expected_type=str):
         val = self.conn.get(key)
-        return val.decode() if val else None
+        if expected_type == str or not val:
+            return val
+
+        elif expected_type == bool:
+            return val == 'True'
+
+        if expected_type in [dict, list]:
+            return json.loads(val)
+
+        elif expected_type == int:
+            return int(val)
+
+    def delete(self, key):
+        res = self.conn.delete(key)
+        return res == 1
+
+    # ===========================================
+    # functionality specific methods
+    # ===========================================
+    # Example Usage: to search all token for a given user_code
+    def search_keys(self, pattern: str):
+        return self.conn.keys(pattern)
+
+    # Example Usage: get value for given api token
+    def get_value_by_key_pattern(self, pattern: str):
+        keys = self.conn.scan(match=pattern)[1]
+        if len(keys) > 0:
+            return self.conn.get(keys[0])
+
+    def expiring_counter(self, key: str, ttl=60):
+        _key = f"rate-limit#{key}"
+        if not self.conn.exists(_key):
+            self.conn.set(_key, 1, ex=ttl)
+            return 1
+        else:
+            return self.conn.incr(_key)
+
 
 class DatabaseManager:
 
@@ -107,15 +146,15 @@ class DatabaseManager:
             c.execute(sql, f)
             self.commit()
 
-            table_name = re.search("from \\w+", sql, re.IGNORECASE).group(0).split()[-1]
-            if sql.startswith('delete'):
-                self.logger.debug(f"{table_name} | Row deleted: {c.rowcount}")
-            else:
-                cols = list(map(lambda x: x[0], c.description))
-                df = pd.DataFrame(c.fetchall(), columns=cols)
-                if df.shape[0] > 0:
-                    self.logger.debug(f"{table_name} | result size: (row x column) = {df.shape}")
-                return df
+            cols = list(map(lambda x: x[0], c.description))
+            df = pd.DataFrame(c.fetchall(), columns=cols)
+            return df
+
+    def delete(self, sql, f=()) -> int:
+        with self.cursor_context(sql, f) as c:
+            c.execute(sql, f)
+            self.commit()
+            return c.rowcount
 
     def commit(self):
         self.conn.commit()

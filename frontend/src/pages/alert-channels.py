@@ -55,7 +55,7 @@ def create_alert_channel():
 
     remarks = st.text_input('Remarks')
 
-    if st.button('Create Channel') and recipient:
+    if st.button(':material/add: Create Channel') and recipient:
         res = backend.create_alert_channel(user_code, {
             'channel_name': channel_name,
             'channel_type': channel_type,

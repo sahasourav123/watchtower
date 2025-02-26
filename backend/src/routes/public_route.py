@@ -9,7 +9,6 @@ from fastapi import Request, Response, APIRouter, Body, Depends, HTTPException, 
 from typing import Literal
 
 from utils import commons
-from utils.commons import logger
 import controller as ct
 import data_model as dm
 import query_engine as qe
@@ -21,17 +20,11 @@ public_route = APIRouter()
 DEFAULT_CACHE_EXPIRE = 60
 
 def _validate_hash(request: Request, monitor_id: int, monitor_hash: str):
-    try:
-        computed_hash = commons.compute_hash(str(monitor_id))
-        if monitor_hash == computed_hash:
-            return True
-    except Exception as e:
-        logger.error(f"Error in hash validation: {e}")
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid hash provided for the monitor",
-    )
+    if not commons.verify_hash(monitor_id, monitor_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid hash provided for the monitor",
+        )
 
 @public_route.get("/")
 async def root():
@@ -75,7 +68,7 @@ def get_recent_monitor_history(limit: int = 10):
     df = qe.fetch_recent_history_by_user({'tags': '{guest, public}'}, limit)
     return {"status": "success", "data": df.to_dict('records')}
 
-@public_route.get("/fetch/uptime", tags=['uptime'])
+@public_route.get("/fetch/uptime")
 @cache(expire=DEFAULT_CACHE_EXPIRE)
 def get_monitor_history(response: Response, day_limit: int = 90):
     df = qe.daily_uptime_history({'tags': '{guest, public}'}, day_limit)

@@ -187,3 +187,40 @@ def get_alert_channels(user_code):
     if not channel_df.empty:
         channel_df['recipient'] = channel_df.apply(extract_recipient, axis=1)
     return channel_df
+
+# ==============================================================
+# API TOKENS
+# ==============================================================
+
+@st.cache_data(ttl=600)
+def fetch_tokens(user_code):
+    url = f"{INTERNAL_ROUTE}/fetch/token?user_code={user_code}"
+    res = requests.get(url)
+    return pd.DataFrame(res.json()['data'])
+
+def create_token(user_code, name, permission, expiry_days=60):
+    url = f"{INTERNAL_ROUTE}/create/token?user_code={user_code}"
+    data = {
+        'name': name,
+        'permission': permission,
+        'expiry_days': expiry_days
+    }
+    res = requests.post(url, params=data, headers={'Content-Type': 'application/json'})
+
+    # clear cache if successful
+    if res.status_code in [200, 201]:
+        fetch_tokens.clear()
+        logger.info(f"Token created with permission: {permission} and expiry: {expiry_days} days | User: {user_code}")
+
+    return res.json()
+
+def delete_token(user_code, token):
+    url = f"{INTERNAL_ROUTE}/delete/token?user_code={user_code}&token={token}"
+    res = requests.delete(url)
+
+    # clear cache if successful
+    if res.status_code in [200, 201]:
+        fetch_tokens.clear()
+        logger.info(f"Token deleted: {res.json()}| User: {user_code}")
+
+    return res.json()

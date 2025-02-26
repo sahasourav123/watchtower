@@ -6,3 +6,7 @@ blacklist:
   - backend
   - timescaledb
   - redis
+
+rate-limit:
+  max-request-count: 100
+  time-window-in-seconds: 60
