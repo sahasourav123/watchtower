@@ -54,7 +54,8 @@ app = FastAPI(
     version=__version__,
     lifespan=lifespan,
     description=description,
-    root_path='/api/v1',
+    docs_url='/api/docs',
+    redoc_url='/api/redoc',
     terms_of_service="https://www.finanssure.com/privacy/",
     contact={
         "name": "Finanssure",
@@ -68,6 +69,6 @@ app = FastAPI(
 )
 
 # include routes in app
-app.include_router(internal_route, prefix='/internal')
-app.include_router(public_route, tags=['public'], prefix='/public')
-app.include_router(protected_route, prefix='/external')
+app.include_router(internal_route, prefix='/internal/v1')
+app.include_router(public_route, tags=['public'], prefix='/api/public/v1')
+app.include_router(protected_route, prefix='/api/external/v1')

@@ -59,7 +59,7 @@ protected_route = APIRouter(dependencies=[Depends(validate_token)])
 def create_monitor(request: Request, monitor_type: dm.MonitorTypes, monitor_data: dm.MonitorModel):
     assert_permission(request, 'read-write')
     monitor_id, _hash = ct.create_monitor(request.state.user_code, monitor_type.value, monitor_data)
-    return {"status": "success", "monitor_id": monitor_id, "hash": _hash}
+    return {"status": "success", "monitor_id": monitor_id, "monitor_hash": _hash}
 
 # update monitor
 @protected_route.put("/update/monitor/{monitor_id}", tags=['monitor'])

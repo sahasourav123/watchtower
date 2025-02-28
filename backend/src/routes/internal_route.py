@@ -57,7 +57,7 @@ MONITORS
 @internal_route.post("/create/monitor", tags=['monitor'])
 def create_monitor(user_code: str, monitor_type: dm.MonitorTypes, monitor_data: dm.MonitorModel):
     monitor_id, _hash = ct.create_monitor(user_code, monitor_type.value, monitor_data)
-    return {"status": "success", "monitor_id": monitor_id, "hash": _hash}
+    return {"status": "success", "monitor_id": monitor_id, "monitor_hash": _hash}
 
 @internal_route.put("/update/monitor/{monitor_id}", tags=['monitor'])
 def update_monitor(user_code: str, monitor_id: int, monitor_data: dm.MonitorModel):
