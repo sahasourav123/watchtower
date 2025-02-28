@@ -3,18 +3,17 @@ this route contains those endpoints which are used by any authenticated user
 Created On: Feb 2025
 Created By: Sourav Saha
 """
-from fastapi import Request, Response, APIRouter, Body, Depends, Security, HTTPException, status
+import json
+from fastapi import Request, Response, APIRouter, Depends, Security, HTTPException, status
 from fastapi.security.api_key import APIKeyHeader
-from fastapi.responses import RedirectResponse
 
-import controller as ct
 import data_model as dm
 from utils import commons
 from utils.db_util import RedisManager
+from routes import internal_route
 
 rd = RedisManager()
 config = commons.load_config()
-INTERNAL_ROUTE = "/internal/v1"
 
 
 async def validate_token(request: Request, token: str = Security(APIKeyHeader(name='x-api-key', auto_error=False))) -> str:
@@ -46,38 +45,34 @@ async def validate_token(request: Request, token: str = Security(APIKeyHeader(na
     request.state.permission = rd.get(keys[0], expected_type=dict)['permission']
     return user_code
 
-def assert_permission(request: Request, required_permission: str):
-    if request.state.permission != required_permission:
+async def assert_permission(request: Request):
+    if request.state.permission != 'read-write':
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"{required_permission} Permission Required.",
+            detail=f"Read-Write Permission Required.",
         )
 
 
 protected_route = APIRouter(dependencies=[Depends(validate_token)])
 
-@protected_route.post("/create/monitor", tags=['monitor'])
-def create_monitor(request: Request, monitor_type: dm.MonitorTypes, monitor_data: dm.MonitorModel):
-    assert_permission(request, 'read-write')
-    monitor_id, _hash = ct.create_monitor(request.state.user_code, monitor_type.value, monitor_data)
-    return {"status": "success", "monitor_id": monitor_id, "monitor_hash": _hash}
+@protected_route.post("/create/monitor", tags=['monitor'], dependencies=[Depends(assert_permission)])
+async def create_monitor(request: Request, monitor_type: dm.MonitorTypes, monitor_data: dm.MonitorModel):
+    internal_response = await internal_route.create_monitor(request.state.user_code, monitor_type.value, monitor_data)
+    return json.loads(internal_response.body.decode("utf-8"))
 
 # update monitor
 @protected_route.put("/update/monitor/{monitor_id}", tags=['monitor'])
-def update_monitor(request: Request, monitor_id: int, monitor_data: dm.MonitorModel):
-    assert_permission(request, 'read-write')
-    result = ct.update_monitor(request.state.user_code, monitor_id, monitor_data)
-    if not result:
-        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"monitor #{monitor_id} not found")
-
-    return {"status": "success"}
+async def update_monitor(request: Request, monitor_id: int, monitor_data: dm.MonitorModel):
+    internal_response = await internal_route.update_monitor(request.state.user_code, monitor_id, monitor_data)
+    return json.loads(internal_response.body.decode("utf-8"))
 
 # delete monitor
-@protected_route.delete("/delete/monitor/{monitor_id}", tags=['monitor'])
-def delete_monitor(request: Request, monitor_id: int):
-    assert_permission(request, 'read-write')
-    return RedirectResponse(url=f"{INTERNAL_ROUTE}/delete/monitor/{monitor_id}?user_code={request.state.user_code}")
+@protected_route.delete("/delete/monitor/{monitor_id}", tags=['monitor'], dependencies=[Depends(assert_permission)])
+async def delete_monitor(request: Request, monitor_id: int):
+    internal_response = await internal_route.delete_monitor(request.state.user_code, monitor_id=monitor_id)
+    return json.loads(internal_response.body.decode("utf-8"))
 
 @protected_route.get("/fetch/monitor", tags=['monitor'])
-def fetch_monitor(request: Request):
-    return RedirectResponse(url=f"{INTERNAL_ROUTE}/fetch/monitor?user_code={request.state.user_code}")
+async def fetch_monitor(request: Request, response: Response):
+    internal_response = await internal_route.get_monitors(response, user_code=request.state.user_code)
+    return json.loads(internal_response.body.decode("utf-8"))

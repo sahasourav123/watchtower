@@ -144,8 +144,8 @@ def run_monitor_by_id(monitor_id):
     return outcome
 
 
-def refresh_monitor():
-    df = qe.get_monitors({'is_active': True})
+def refresh_monitor(user_code: str = None):
+    df = qe.get_monitors({'is_active': True, 'user_code': user_code})
     for idx, row in df.iterrows():
         sch.create_job(row['monitor_id'], row['interval'], row['interval_unit'], row['expiry'], rerun=False)
 

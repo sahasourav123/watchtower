@@ -38,15 +38,15 @@ async def lifespan(app: FastAPI):
 description = """
 Open Source Uptime Monitor for APIs, Websites, Events etc. with real-time alert. 🚀
 
-## Public Endpoints - /api/v1/external/
+## Public Endpoints - /api/public/v1/
 * Can be invoked from anywhere without any authentication
 * IP level Rate Limit applies
 
-## External Endpoints - /api/v1/external/
+## External Endpoints - /api/external/v1/
 * Must be used with **x-api-key** header
 * User Level Rate Limit applies
 
-## Internal Endpoints - /api/v1/internal/
+## Internal Endpoints - /internal/v1/
 * Can NOT be invoked from outside world.
 """
 app = FastAPI(
@@ -56,6 +56,7 @@ app = FastAPI(
     description=description,
     docs_url='/api/docs',
     redoc_url='/api/redoc',
+    openapi_url='/api/openapi.json',
     terms_of_service="https://www.finanssure.com/privacy/",
     contact={
         "name": "Finanssure",

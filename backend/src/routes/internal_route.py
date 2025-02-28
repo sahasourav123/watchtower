@@ -133,8 +133,8 @@ OTHER
 """
 # refresh monitor
 @internal_route.get("/refresh/monitor", tags=['other'])
-def refresh_monitor():
-    count = ct.refresh_monitor()
+def refresh_monitor(user_code: str = None):
+    count = ct.refresh_monitor(user_code)
     return {"status": "success", "count": count}
 
 # retrieve monitor hash
