@@ -14,6 +14,7 @@ from utils.db_util import RedisManager
 
 rd = RedisManager()
 config = commons.load_config()
+INTERNAL_ROUTE = "/internal/v1"
 
 
 async def validate_token(request: Request, token: str = Security(APIKeyHeader(name='x-api-key', auto_error=False))) -> str:
@@ -75,8 +76,8 @@ def update_monitor(request: Request, monitor_id: int, monitor_data: dm.MonitorMo
 @protected_route.delete("/delete/monitor/{monitor_id}", tags=['monitor'])
 def delete_monitor(request: Request, monitor_id: int):
     assert_permission(request, 'read-write')
-    return RedirectResponse(url=f"/api/v1/internal/delete/monitor/{monitor_id}?user_code={request.state.user_code}")
+    return RedirectResponse(url=f"{INTERNAL_ROUTE}/delete/monitor/{monitor_id}?user_code={request.state.user_code}")
 
 @protected_route.get("/fetch/monitor", tags=['monitor'])
 def fetch_monitor(request: Request):
-    return RedirectResponse(url=f"/api/v1/internal/fetch/monitor?user_code={request.state.user_code}")
+    return RedirectResponse(url=f"{INTERNAL_ROUTE}/fetch/monitor?user_code={request.state.user_code}")
