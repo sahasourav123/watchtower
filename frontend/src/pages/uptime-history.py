@@ -1,6 +1,5 @@
 import pandas as pd
 import streamlit as st
-import plotly.express as px
 import plotly.graph_objects as go
 from svc import svc_backend as backend
 from constants import UPTIME_HISTORY_LIMIT

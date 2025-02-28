@@ -22,7 +22,7 @@ cc = st.columns([1, 4])
 day_limit = cc[0].number_input('Day Limit', value=UPTIME_HISTORY_LIMIT, min_value=1, max_value=90)
 
 uptime_df = backend.fetch_uptime_history(user_code, day_limit)
-response_stats_df = backend.get_daily_response_stats(user_code)
+response_stats_df = backend.get_daily_response_stats(user_code, day_limit)
 filter_monitor_type = cc[1].radio('Select Monitor Type', sorted(uptime_df['monitor_type'].unique()), horizontal=True)
 
 
@@ -59,6 +59,7 @@ def response_code_analytics():
         'website': 'status',
         'dns': 'status',
         'tcp': 'status',
+        'database': 'status',
         'ssl': 'count',
         'domain': 'count',
         'event': 'count',
@@ -92,20 +93,39 @@ def response_code_analytics():
         st.warning("No data available for the selected filter")
         return
 
+    # check complete date range last n days
+    filtered_df['date'] = pd.to_datetime(filtered_df['date'])
+    end_date = filtered_df['date'].max()
+    start_date = end_date - pd.DateOffset(days=day_limit)
+    full_date_range = pd.date_range(start=start_date, end=end_date)
+
     selected_scale = cc[1].radio('Select Scale', options=['Linear', 'Logarithmic'], index=1, horizontal=True)
     for monitor_id, stat_df in filtered_df.groupby('monitor_id'):
         monitor_name = stat_df['monitor_name'].iloc[-1]
+        st.subheader(monitor_name)
+        missing_dates = set(full_date_range) - set(stat_df['date'])
+        padding_df = pd.DataFrame(missing_dates, columns=['date'])
+        sized_df = pd.concat([padding_df, stat_df]).set_index('date').sort_index()
+        sized_df = sized_df.fillna({'response': 0, 'total': 0})
 
         if response_type_map[filter_monitor_type] == 'status':
             fig = px.bar(
-                stat_df, x="date", y="total", color="response", color_discrete_map={'0': 'green', '200': 'green', '404': 'brown', '500': 'red'},
-                category_orders={'response': sorted(stat_df['response'].unique())},
+                sized_df, x=sized_df.index, y="total", color="response",
+                color_discrete_map={
+                    '0': 'green',
+                    '200': 'green',
+                    '404': 'brown',
+                    '500': 'red'
+                },
+                category_orders={
+                    'response': sorted(sized_df['response'].astype(int).unique())
+                },
                 log_y=True if selected_scale == 'Logarithmic' else False,
             )
 
         else:
             fig = px.bar(
-                stat_df, x="date", y="response",
+                sized_df, x=sized_df.index, y="response",
                 log_y=True if selected_scale == 'Logarithmic' else False,
             )
 

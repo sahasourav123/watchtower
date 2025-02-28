@@ -51,9 +51,9 @@ def get_monitor_stats(response: Response):
 
 @public_route.get("/stats/execution")
 @cache(expire=DEFAULT_CACHE_EXPIRE)
-def get_execution_stats(response: Response):
-    daywise_df = qe.daily_uptime_stats()
-    final_df = qe.aggregated_uptime_stats()
+def get_execution_stats(response: Response, day_limit: int = 90):
+    daywise_df = qe.daily_uptime_stats(day_limit)
+    final_df = qe.aggregated_uptime_stats(day_limit)
     return {"status": "success", "agg": final_df.to_dict('records'),  "data": daywise_df.to_dict('records')}
 
 @public_route.get("/fetch/monitor")

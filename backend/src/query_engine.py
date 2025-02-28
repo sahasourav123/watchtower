@@ -26,9 +26,10 @@ def daily_uptime_stats(day_limit: int = 90):
     """
     return db.query(sql)
 
-def aggregated_uptime_stats():
+def aggregated_uptime_stats(day_limit: int = 90):
     sql = f"""select monitor_type, sum(total) as total_checks 
     from vw_uptime_summary
+    where date >= current_date - interval '{day_limit} day'
     group by monitor_type
     """
     return db.query(sql)

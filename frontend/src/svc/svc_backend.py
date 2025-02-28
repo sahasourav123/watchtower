@@ -102,11 +102,11 @@ def get_monitor_stats(user_code: str):
     return res.json()['data']
 
 @st.cache_data(ttl=60)
-def get_daily_response_stats(user_code: str):
+def get_daily_response_stats(user_code: str, day_limit: int):
     if user_code == 'guest':
-        res = requests.get(f"{PUBLIC_ROUTE}/stats/response/daily")
+        res = requests.get(f"{PUBLIC_ROUTE}/stats/response/daily?day_limit=1000")
     else:
-        res = requests.get(f"{INTERNAL_ROUTE}/stats/response/daily?user_code={user_code}")
+        res = requests.get(f"{INTERNAL_ROUTE}/stats/response/daily?user_code={user_code}&day_limit={day_limit}")
 
     return pd.DataFrame(res.json()['data'])
 
