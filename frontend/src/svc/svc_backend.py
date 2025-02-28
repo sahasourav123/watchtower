@@ -6,9 +6,9 @@ import requests
 import streamlit as st
 from utils import logger
 
-BACKEND_SERVICE = os.getenv('BACKEND_SERVICE', 'http://backend:8000/api/v1')
-PUBLIC_ROUTE = f"{BACKEND_SERVICE}/public"
-INTERNAL_ROUTE = f"{BACKEND_SERVICE}/internal"
+BACKEND_SERVICE = os.getenv('BACKEND_SERVICE', 'http://backend:8000')
+PUBLIC_ROUTE = f"{BACKEND_SERVICE}/api/public/v1"
+INTERNAL_ROUTE = f"{BACKEND_SERVICE}/internal/v1"
 
 @st.cache_data(ttl=1800)
 def load_service():
@@ -26,21 +26,9 @@ def run_monitor(user_code: str, monitor_id: int):
     res = requests.get(url)
     return res.json()
 
-def create_monitor(monitor_type, monitor_group, monitor_name, monitor_body, timeout, interval, interval_unit, expiry: date, monitor_expectation, alerts, monitor_tags, user_code, org_code=None):
+def create_monitor(user_code, monitor_type, monitor_config: dict):
     url = f'{INTERNAL_ROUTE}/create/monitor?user_code={user_code}&monitor_type={monitor_type}'
-    monitor_data = {
-        'monitor_name': monitor_name,
-        'monitor_group': monitor_group,
-        'monitor_body': monitor_body,
-        'timeout': timeout,
-        'interval': interval,
-        'interval_unit': interval_unit,
-        'expiry': expiry.strftime('%Y-%m-%d') if expiry else None,
-        'expectation': monitor_expectation,
-        'alerts': alerts,
-        'tags': [tag.strip() for tag in monitor_tags.split(',')],
-    }
-    res = requests.post(url, json=monitor_data, headers={'Content-Type': 'application/json'})
+    res = requests.post(url, json=monitor_config, headers={'Content-Type': 'application/json'})
 
     # clear cache if successful
     if res.status_code in [200, 201]:
