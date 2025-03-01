@@ -13,8 +13,27 @@ from __version__ import __version__
 # Start Application
 # ======================================================================
 st.set_page_config(layout='wide', page_title='The Watchtower', initial_sidebar_state='expanded')
-with st.container(height=300, border=False):
-    st.image('assets/watchtower.jpeg', use_column_width=True)
+
+# JavaScript to detect webview and redirect to an external browser
+webview_js = """
+<script>
+function isInWebView() {
+    let userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    return /LinkedInApp|FBAN|FBAV|Instagram|Twitter/i.test(userAgent);
+}
+
+if (isInWebView()) {
+    document.body.innerHTML = `
+        <h2>⚠️ Google Login is Blocked inside in app WebViews</h2>
+        <p>📢 Please open this page in an **external browser**:</p>
+        <button onclick="window.location.href='https://watchtower.finanssure.com'">Open in Browser</button>
+    `;
+}
+</script>
+"""
+
+# Inject JavaScript into Streamlit
+st.markdown(webview_js, unsafe_allow_html=True)
 
 st.title(f'The Watchtower')
 logger.info("initializing app")
@@ -53,6 +72,9 @@ if os.getenv('ENV') == 'production':
                 ff.write(modified_html)
 
 # ======================================================================
+with st.container(height=300, border=False):
+    st.image('assets/watchtower.jpeg', use_column_width=True)
+
 import auth
 user_code = auth.ensure_logged_in('guest')
 
