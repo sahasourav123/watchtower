@@ -81,7 +81,7 @@ for idx, stat in enumerate(stats):
 # Execution Trends
 # ======================================================================
 st.subheader("Monitor Checked Count (Global)")
-agg_execution_stats, execution_stats_df = backend.get_execution_stats()
+agg_execution_stats, execution_stats_df = backend.get_execution_stats(365 * 10)
 
 rc = st.columns(len(placeholder))
 for idx, stat in enumerate(agg_execution_stats):

@@ -1,7 +1,6 @@
 import os
 import json
 import pandas as pd
-from datetime import date
 import requests
 import streamlit as st
 from utils import logger
@@ -120,8 +119,8 @@ def get_agg_response_stats(user_code: str):
     return pd.DataFrame(res.json()['data'])
 
 @st.cache_data(ttl=60)
-def get_execution_stats():
-    res = requests.get(f"{PUBLIC_ROUTE}/stats/execution")
+def get_execution_stats(day_limit: int):
+    res = requests.get(f"{PUBLIC_ROUTE}/stats/execution?day_limit={day_limit}")
     result = res.json()
     return result['agg'], pd.DataFrame(result['data']).set_index('date')
 
