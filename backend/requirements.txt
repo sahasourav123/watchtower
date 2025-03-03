@@ -1,5 +1,5 @@
 uvicorn==0.34.0
-fastapi==0.115.8
+fastapi==0.115.11
 fastapi-redis-cache==0.2.5
 python-multipart==0.0.20
 rich==13.9.4
