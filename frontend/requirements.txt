@@ -1,4 +1,4 @@
-streamlit==1.38.0
+streamlit==1.43.1
 streamlit-oauth==0.1.14
 streamlit-cookies-manager==0.2.0
 pyjwt==2.10.1
