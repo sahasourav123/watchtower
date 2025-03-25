@@ -23,7 +23,16 @@ day_limit = cc[0].number_input('Day Limit', value=UPTIME_HISTORY_LIMIT, min_valu
 
 uptime_df = backend.fetch_uptime_history(user_code, day_limit)
 response_stats_df = backend.get_daily_response_stats(user_code, day_limit)
-filter_monitor_type = cc[1].radio('Select Monitor Type', sorted(uptime_df['monitor_type'].unique()), horizontal=True)
+selected_monitor_group = cc[1].multiselect('Select Monitor Group(s)', uptime_df['monitor_group'].unique())
+if selected_monitor_group:
+    uptime_df = uptime_df[uptime_df['monitor_group'].isin(selected_monitor_group)]
+    response_stats_df = response_stats_df[response_stats_df['monitor_group'].isin(selected_monitor_group)]
+
+filter_monitor_type = st.radio(
+    'Select Monitor Type',
+    sorted(uptime_df['monitor_type'].str.upper().unique()),
+    horizontal=True
+).lower()
 
 
 # ===========================================================
@@ -76,18 +85,6 @@ def response_code_analytics():
         outcome_flag = [True, False]
 
     filtered_df = response_stats_df[(response_stats_df['monitor_type'] == filter_monitor_type) & (response_stats_df['is_success'].isin(outcome_flag))]
-    with st.expander("Show Response Stats"):
-        _column_config = {
-            'date': st.column_config.DateColumn('Date'),
-            'monitor_group': 'Group',
-            'monitor_name': 'Monitor Name',
-            'monitor_id': 'ID #',
-            'is_success': 'Is Success',
-            'response': 'Response',
-            'total': 'Count',
-            'last_check_time': st.column_config.DatetimeColumn('Last Check', timezone='Asia/Kolkata'),
-        }
-        st.dataframe(filtered_df, column_config=_column_config, column_order=_column_config.keys(), hide_index=True)
 
     if filtered_df.empty:
         st.warning("No data available for the selected filter")
@@ -112,8 +109,8 @@ def response_code_analytics():
             fig = px.bar(
                 sized_df, x=sized_df.index, y="total", color="response",
                 color_discrete_map={
-                    '0': 'green',
-                    '200': 'green',
+                    '0': 'dodgerblue',
+                    '200': 'dodgerblue',
                     '404': 'brown',
                     '500': 'red'
                 },
