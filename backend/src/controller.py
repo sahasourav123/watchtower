@@ -25,7 +25,8 @@ def create_monitor(user_code: str, monitor_type: dm.MonitorTypes, monitor_data: 
     qe.update_monitor(user_code, monitor_id, data={'monitor_body': {**monitor_data.monitor_body, 'hash': computed_hash}})
 
     # schedule monitoring
-    sch.create_job(monitor_id, monitor_data.interval, monitor_data.interval_unit, monitor_data.expiry)
+    if monitor_type != 'event' and monitor_data.interval:     # TODO: event monitoring is in backlog
+        sch.create_job(monitor_id, monitor_data.interval, monitor_data.interval_unit, monitor_data.expiry)
     return monitor_id, computed_hash
 
 # update monitor
@@ -34,7 +35,7 @@ def update_monitor(user_code: str, monitor_id: int, monitor_data: dm.MonitorMode
 
     if count == 0:
         return False
-    elif count > 0 and monitor_data.interval:
+    elif count > 0 and monitor_data.interval and monitor_data.monitor_type != 'event':
         sch.create_job(monitor_id, monitor_data.interval, monitor_data.interval_unit, monitor_data.expiry)
     elif count > 0 and monitor_data.is_active is False:
         sch.manage_job('pause', monitor_id)
@@ -121,7 +122,7 @@ def run_monitor_by_id(monitor_id):
     monitor_type = monitor['monitor_type']
 
     if monitor_type == 'event':
-        logger.warning(f"WIP: Event based monitor cannot be run yet")
+        logger.warning(f"WIP: Event based monitor cannot be run yet | ID: #{monitor_id}")
         return
 
     try:
@@ -147,7 +148,11 @@ def run_monitor_by_id(monitor_id):
 def refresh_monitor(user_code: str = None):
     df = qe.get_monitors({'is_active': True, 'user_code': user_code})
     for idx, row in df.iterrows():
-        sch.create_job(row['monitor_id'], row['interval'], row['interval_unit'], row['expiry'], rerun=False)
+        if row['monitor_type'] == 'event':
+            logger.warning(f"WIP: Event based monitor cannot be run yet | ID: #{row['monitor_id']}")
+            sch.manage_job('pause', row['monitor_id'])
+        else:
+            sch.create_job(row['monitor_id'], row['interval'], row['interval_unit'], row['expiry'], rerun=False)
 
     return df.shape[0]
 

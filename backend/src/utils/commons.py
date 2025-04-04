@@ -10,12 +10,6 @@ from rich.logging import RichHandler
 import hmac, hashlib
 from functools import lru_cache
 
-# load environment variables
-# from dotenv import load_dotenv
-# base_dir = os.path.dirname(os.getcwd())
-# load_dotenv(f"{base_dir}/.env")
-# load_dotenv(f"{base_dir}/.env.local", override=True)
-
 logging.basicConfig(level='INFO', format='%(message)s', datefmt="[%X]",  handlers=[RichHandler()])
 logger = logging.getLogger()
 

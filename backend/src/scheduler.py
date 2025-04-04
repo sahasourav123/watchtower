@@ -55,6 +55,7 @@ class Scheduler:
 
         self.scheduler.configure(jobstores=job_stores, executors=job_executors, job_defaults=job_defaults)
         self.scheduler.start()
+        logging.getLogger('apscheduler').setLevel(logging.WARNING)
         return self.scheduler
 
 
