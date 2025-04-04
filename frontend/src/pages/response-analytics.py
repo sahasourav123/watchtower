@@ -97,42 +97,47 @@ def response_code_analytics():
     full_date_range = pd.date_range(start=start_date, end=end_date)
 
     selected_scale = cc[1].radio('Select Scale', options=['Linear', 'Logarithmic'], index=1, horizontal=True)
-    for monitor_id, stat_df in filtered_df.groupby('monitor_id'):
-        monitor_name = stat_df['monitor_name'].iloc[-1]
-        st.subheader(monitor_name)
-        missing_dates = set(full_date_range) - set(stat_df['date'])
-        padding_df = pd.DataFrame(missing_dates, columns=['date'])
-        sized_df = pd.concat([padding_df, stat_df]).set_index('date').sort_index()
-        sized_df = sized_df.fillna({'response': 0, 'total': 0})
 
-        if response_type_map[filter_monitor_type] == 'status':
-            fig = px.bar(
-                sized_df, x=sized_df.index, y="total", color="response",
-                color_discrete_map={
-                    '0': 'dodgerblue',
-                    '200': 'dodgerblue',
-                    '404': 'brown',
-                    '500': 'red'
-                },
-                category_orders={
-                    'response': sorted(sized_df['response'].astype(int).unique())
-                },
-                log_y=True if selected_scale == 'Logarithmic' else False,
+    for monitor_group, monitor_df_grouped in filtered_df.groupby('monitor_group'):
+        st.divider()
+        st.subheader(f":blue[:material/double_arrow: {monitor_group} ({monitor_df_grouped['monitor_id'].nunique()})]")
+
+        for monitor_id, stat_df in monitor_df_grouped.groupby('monitor_id'):
+            monitor_name = stat_df['monitor_name'].iloc[-1]
+            st.subheader(monitor_name)
+            missing_dates = set(full_date_range) - set(stat_df['date'])
+            padding_df = pd.DataFrame(missing_dates, columns=['date'])
+            sized_df = pd.concat([padding_df, stat_df]).set_index('date').sort_index()
+            sized_df = sized_df.fillna({'response': 0, 'total': 0})
+
+            if response_type_map[filter_monitor_type] == 'status':
+                fig = px.bar(
+                    sized_df, x=sized_df.index, y="total", color="response",
+                    color_discrete_map={
+                        '0': 'dodgerblue',
+                        '200': 'dodgerblue',
+                        '404': 'brown',
+                        '500': 'red'
+                    },
+                    category_orders={
+                        'response': sorted(sized_df['response'].astype(int).unique())
+                    },
+                    log_y=True if selected_scale == 'Logarithmic' else False,
+                )
+
+            else:
+                fig = px.bar(
+                    sized_df, x=sized_df.index, y="response",
+                    log_y=True if selected_scale == 'Logarithmic' else False,
+                )
+
+            fig.update_layout(
+                title=f"{monitor_name} (#{monitor_id})",
+                height=220,
+                xaxis={'title': 'Date'},
+                yaxis={'title': None},
             )
-
-        else:
-            fig = px.bar(
-                sized_df, x=sized_df.index, y="response",
-                log_y=True if selected_scale == 'Logarithmic' else False,
-            )
-
-        fig.update_layout(
-            title=f"{monitor_name} (#{monitor_id})",
-            height=220,
-            xaxis={'title': 'Date'},
-            yaxis={'title': None},
-        )
-        st.plotly_chart(fig)
+            st.plotly_chart(fig)
 
 
 # ===========================================================

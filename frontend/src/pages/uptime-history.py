@@ -43,7 +43,7 @@ def get_bar_color(uptime_pct):
 # Plot Uptime History
 for monitor_group, monitor_df_grouped in uptime_df.groupby('monitor_group'):
     st.divider()
-    st.subheader(f":blue[:material/double_arrow: {monitor_group}]")
+    st.subheader(f":blue[:material/double_arrow: {monitor_group} ({monitor_df_grouped['monitor_id'].nunique()})]")
 
     for monitor_id, df_monitor in monitor_df_grouped.groupby('monitor_id'):
 
@@ -68,7 +68,7 @@ for monitor_group, monitor_df_grouped in uptime_df.groupby('monitor_group'):
             ))
 
         fig.update_layout(
-            title=f"{monitor_type} | {monitor_name}",
+            title=f"{monitor_type} | {monitor_name} (#{monitor_id})",
             xaxis=dict(
                 # title='Date',
                 tickvals=full_date_range[::max(1, len(full_date_range)//10)],

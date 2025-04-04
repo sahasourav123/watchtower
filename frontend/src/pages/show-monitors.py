@@ -105,6 +105,9 @@ def get_monitors():
 
 
 monitor_df = get_monitors()
+selected_monitor_group = st.multiselect('Select Monitor Group(s)', monitor_df['monitor_group'].unique())
+if selected_monitor_group:
+    monitor_df = monitor_df[monitor_df['monitor_group'].isin(selected_monitor_group)]
 st.subheader(f"Monitor List ({monitor_df.shape[0]})")
 
 if monitor_df.empty:
