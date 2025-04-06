@@ -62,7 +62,7 @@
 # Default: "full"
 showErrorDetails = "none"
 
- Change the visibility of items in the toolbar, options menu,
+# Change the visibility of items in the toolbar, options menu,
 # and settings dialog (top right of the app).
 
 # Allowed values:
