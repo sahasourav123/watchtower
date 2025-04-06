@@ -60,9 +60,9 @@
 # error details.
 
 # Default: "full"
-#showErrorDetails = "none"
+showErrorDetails = "none"
 
-# Change the visibility of items in the toolbar, options menu,
+ Change the visibility of items in the toolbar, options menu,
 # and settings dialog (top right of the app).
 
 # Allowed values:
@@ -459,4 +459,4 @@ base = "light"
 # Order is important, import is first to last, so secrets in later files
 # will take precedence over earlier ones.
 
-# files = [ "~/.streamlit/secrets.toml", "{WORKDIR}/.streamlit/secrets.toml",]
+files = [ "/app/.streamlit/base-secrets.toml", "/app/.streamlit/secrets.toml" ]

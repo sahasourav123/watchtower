@@ -43,6 +43,8 @@ services:
     restart: unless-stopped
     ports:
       - "8101:8000"
+    volumes:
+      - ~/.streamlit/secrets.toml:/app/.streamlit/base-secrets.toml
 
 volumes:
   timescaledb-data:
