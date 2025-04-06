@@ -14,7 +14,7 @@ from __version__ import __version__
 # ======================================================================
 st.set_page_config(layout='wide', page_title='The Watchtower', initial_sidebar_state='expanded')
 with st.container(height=300, border=False):
-    st.image('assets/watchtower.jpeg', use_column_width=True)
+    st.image('assets/watchtower.jpeg', use_container_width=True)
 
 st.title(f'The Watchtower')
 logger.info("initializing app")
@@ -54,7 +54,7 @@ if os.getenv('ENV') == 'production':
 
 # ======================================================================
 import auth
-user_code = auth.ensure_logged_in('guest')
+user_code = auth.who_am_i()
 
 stats = backend.get_monitor_stats(user_code)
 

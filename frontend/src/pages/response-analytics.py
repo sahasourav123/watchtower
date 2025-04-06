@@ -13,7 +13,7 @@ st.set_page_config(layout='wide', page_title='Response Analytics', initial_sideb
 st.header("Response Analytics")
 
 import auth
-user_code = auth.ensure_logged_in()
+user_code = auth.who_am_i()
 
 if user_code == 'guest':
     st.warning("You are accessing this page as **Guest**. Only sample monitors are displayed")

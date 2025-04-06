@@ -3,12 +3,12 @@ Created On: July 2024
 Created By: Sourav Saha
 """
 import logging
-from rich.logging import RichHandler
 
 import shlex
 from urllib.parse import urlparse, parse_qs
 
-logging.basicConfig(level='INFO', format='%(message)s', datefmt="[%X]",  handlers=[RichHandler()])
+log_format = "[%(levelname)-8.8s] %(asctime)s [%(threadName)-15.15s] [%(module)-12.12s :%(funcName)-15.15s:%(lineno)-3.3d] - %(message)s"
+logging.basicConfig(level='INFO', format=log_format, datefmt="[%X]")
 logger = logging.getLogger()
 
 import streamlit as st

@@ -7,7 +7,7 @@ from svc import svc_backend as backend
 
 st.set_page_config(layout='wide', page_title='User Profile', initial_sidebar_state='expanded')
 st.title("User Profile")
-user_code = auth.ensure_logged_in()
+user_code = auth.who_am_i()
 
 if user_code == 'guest':
     st.warning("Please login to view your profile.")

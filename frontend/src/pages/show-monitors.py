@@ -6,7 +6,7 @@ from constants import OUTCOME_HISTORY_LIMIT, PUSH_EVENT_ENDPOINT
 import auth
 
 st.set_page_config(layout='wide', page_title='Show Monitors', initial_sidebar_state='expanded')
-user_code = auth.ensure_logged_in()
+user_code = auth.who_am_i()
 
 st.header("Manage Monitors")
 

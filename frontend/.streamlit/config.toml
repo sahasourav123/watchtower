@@ -18,15 +18,16 @@
 
 [logger]
 
-# Level of logging: 'error', 'warning', 'info', or 'debug'.
+# Level of logging for Streamlit's internal logger: "error", "warning", "info", or "debug".
 
-# Default: 'info'
+# Default: "info"
 # level = "info"
 
 # String format for logging messages. If logger.datetimeFormat is set,
-# logger messages will default to `%(asctime)s.%(msecs)03d %(message)s`. See
-# [Python's documentation](https://docs.python.org/2.6/library/logging.html#formatter-objects)
-# for available attributes.
+# logger messages will default to `%(asctime)s.%(msecs)03d %(message)s`.
+
+# See Python's documentation for available attributes:
+# https://docs.python.org/3/library/logging.html#formatter-objects
 
 # Default: "%(asctime)s %(message)s"
 # messageFormat = "%(asctime)s %(message)s"
@@ -35,36 +36,51 @@
 [client]
 
 # Controls whether uncaught app exceptions and deprecation warnings
-# are displayed in the browser. By default, this is set to True and
-# Streamlit displays app exceptions and associated tracebacks, and
-# deprecation warnings, in the browser.
+# are displayed in the browser. This can be one of the following:
 
-# If set to False, deprecation warnings and full exception messages
-# will print to the console only. Exceptions will still display in the
-# browser with a generic error message. For now, the exception type and
-# traceback show in the browser also, but they will be removed in the
-# future.
+# - "full" : In the browser, Streamlit displays app deprecation
+# warnings and exceptions, including exception types,
+# exception messages, and associated tracebacks.
+# - "stacktrace" : In the browser, Streamlit displays exceptions,
+# including exception types, generic exception messages,
+# and associated tracebacks. Deprecation warnings and
+# full exception messages will only print to the
+# console.
+# - "type" : In the browser, Streamlit displays exception types and
+# generic exception messages. Deprecation warnings, full
+# exception messages, and associated tracebacks only
+# print to the console.
+# - "none" : In the browser, Streamlit displays generic exception
+# messages. Deprecation warnings, full exception
+# messages, associated tracebacks, and exception types
+# will only print to the console.
+# - True : This is deprecated. Streamlit displays "full"
+# error details.
+# - False : This is deprecated. Streamlit displays "stacktrace"
+# error details.
 
-# Default: true
-# showErrorDetails = true
+# Default: "full"
+#showErrorDetails = "none"
 
 # Change the visibility of items in the toolbar, options menu,
 # and settings dialog (top right of the app).
 
 # Allowed values:
-# * "auto" : Show the developer options if the app is accessed through
+# - "auto" : Show the developer options if the app is accessed through
 # localhost or through Streamlit Community Cloud as a developer.
 # Hide them otherwise.
-# * "developer" : Show the developer options.
-# * "viewer" : Hide the developer options.
-# * "minimal" : Show only options set externally (e.g. through
+# - "developer" : Show the developer options.
+# - "viewer" : Hide the developer options.
+# - "minimal" : Show only options set externally (e.g. through
 # Streamlit Community Cloud) or through st.set_page_config.
 # If there are no options left, hide the menu.
 
 # Default: "auto"
 # toolbarMode = "auto"
 
-# Controls whether the default sidebar page navigation in a multi-page app is displayed.
+# Controls whether to display the default sidebar page navigation in a
+# multi-page app. This only applies when app's pages are defined by the
+# `pages/` directory.
 
 # Default: true
 showSidebarNavigation = false
@@ -96,13 +112,14 @@ showSidebarNavigation = false
 # enforceSerializableSessionState = false
 
 # Adjust how certain 'options' widgets like radio, selectbox, and
-# multiselect coerce Enum members when the Enum class gets
-# re-defined during a script re-run.
+# multiselect coerce Enum members when the Enum class gets re-defined
+# during a script re-run. For more information, check out the docs:
+# https://docs.streamlit.io/develop/concepts/design/custom-classes#enums
 
 # Allowed values:
-# * "off": Disables Enum coercion.
-# * "nameOnly": Enum classes can be coerced if their member names match.
-# * "nameAndValue": Enum classes can be coerced if their member names AND
+# - "off": Disables Enum coercion.
+# - "nameOnly": Enum classes can be coerced if their member names match.
+# - "nameAndValue": Enum classes can be coerced if their member names AND
 # member values match.
 
 # Default: "nameOnly"
@@ -124,20 +141,21 @@ showSidebarNavigation = false
 # completely.
 
 # Allowed values:
-# * "auto" : Streamlit will attempt to use the watchdog module, and
+# - "auto" : Streamlit will attempt to use the watchdog module, and
 # falls back to polling if watchdog is not available.
-# * "watchdog" : Force Streamlit to use the watchdog module.
-# * "poll" : Force Streamlit to always use polling.
-# * "none" : Streamlit will not watch files.
+# - "watchdog" : Force Streamlit to use the watchdog module.
+# - "poll" : Force Streamlit to always use polling.
+# - "none" : Streamlit will not watch files.
 
 # Default: "auto"
 # fileWatcherType = "auto"
 
-# Symmetric key used to produce signed cookies. If deploying on multiple replicas, this should
-# be set to the same value across all replicas to ensure they all share the same secret.
+# Symmetric key used to produce signed cookies. If deploying on multiple
+# replicas, this should be set to the same value across all replicas to ensure
+# they all share the same secret.
 
 # Default: randomly generated secret key.
-# cookieSecret = "aeafacbc94996cd612918d3345cd8ad6c3a85465ed9a3da9262f28771ed65f9c"
+# cookieSecret = "27e402ceb8fa713f840f291c06b55707ed1c8334bd9512237df3f3ee3ee1a2f5"
 
 # If false, will attempt to open a browser window on start.
 
@@ -170,18 +188,20 @@ port = 8000
 # Default: ""
 # baseUrlPath = ""
 
-# Enables support for Cross-Origin Resource Sharing (CORS) protection, for added security.
+# Enables support for Cross-Origin Resource Sharing (CORS) protection,
+# for added security.
 
-# Due to conflicts between CORS and XSRF, if `server.enableXsrfProtection` is on and
-# `server.enableCORS` is off at the same time, we will prioritize `server.enableXsrfProtection`.
+# If XSRF protection is enabled and CORS protection is disabled at the
+# same time, Streamlit will enable them both instead.
 
 # Default: true
 # enableCORS = true
 
-# Enables support for Cross-Site Request Forgery (XSRF) protection, for added security.
+# Enables support for Cross-Site Request Forgery (XSRF) protection, for
+# added security.
 
-# Due to conflicts between CORS and XSRF, if `server.enableXsrfProtection` is on and
-# `server.enableCORS` is off at the same time, we will prioritize `server.enableXsrfProtection`.
+# If XSRF protection is enabled and CORS protection is disabled at the
+# same time, Streamlit will enable them both instead.
 
 # Default: true
 # enableXsrfProtection = true
@@ -191,7 +211,8 @@ port = 8000
 # Default: 200
 # maxUploadSize = 200
 
-# Max size, in megabytes, of messages that can be sent via the WebSocket connection.
+# Max size, in megabytes, of messages that can be sent via the WebSocket
+# connection.
 
 # Default: 200
 # maxMessageSize = 200
@@ -201,10 +222,18 @@ port = 8000
 # Default: false
 # enableWebsocketCompression = false
 
-# Enable serving files from a `static` directory in the running app's directory.
+# Enable serving files from a `static` directory in the running app's
+# directory.
 
 # Default: false
 # enableStaticServing = false
+
+# TTL in seconds for sessions whose websockets have been disconnected. The server
+# may choose to clean up session state, uploaded files, etc for a given session
+# with no active websocket connection at any point after this time has passed.
+
+# Default: 120
+# disconnectedSessionTTL = 120
 
 # Server certificate file for connecting via HTTPS.
 # Must be set at the same time as "server.sslKeyFile".
@@ -250,7 +279,7 @@ gatherUsageStats = false
 # development.
 
 # Default: whatever value is set in server.port.
-# serverPort = 8501
+# serverPort = 8000
 
 
 [mapbox]
@@ -266,20 +295,168 @@ gatherUsageStats = false
 
 [theme]
 
-# The preset Streamlit theme that your custom theme inherits from. One of "light" or "dark".
+# The preset Streamlit theme that your custom theme inherits from.
+# This can be one of the following: "light" or "dark".
 base = "light"
 
-# Primary accent color for interactive elements.
+# Primary accent color.
 # primaryColor =
 
-# Background color for the main content area.
+# Background color of the app.
 # backgroundColor =
 
-# Background color used for the sidebar and most interactive widgets.
+# Background color used for most interactive widgets.
 # secondaryBackgroundColor =
 
 # Color used for almost all text.
 # textColor =
 
-# Font family for all text in the app, except code blocks. One of "sans serif", "serif", or "monospace".
+# Color used for all links.
+# linkColor =
+
+# Background color used for code blocks.
+# codeBackgroundColor =
+
+# The font family for all text, except code blocks. This can be one of
+# the following:
+# - "sans-serif"
+# - "serif"
+# - "monospace"
+# - the `font` value for a custom font table under [[theme.fontFaces]]
+# - a comma-separated list of these (as a single string) to specify
+# fallbacks
+# For example, you can use the following:
+# font = "cool-font, fallback-cool-font, sans-serif"
 # font =
+
+# The font family to use for code (monospace) in the sidebar. This can be
+# one of the following:
+# - "sans-serif"
+# - "serif"
+# - "monospace"
+# - the `font` value for a custom font table under [[theme.fontFaces]]
+# - a comma-separated list of these (as a single string) to specify
+# fallbacks
+# codeFont =
+
+# The font family to use for headings. This can be one of the following:
+# - "sans-serif"
+# - "serif"
+# - "monospace"
+# - the `font` value for a custom font table under [[theme.fontFaces]]
+# - a comma-separated list of these (as a single string) to specify
+# fallbacks
+# If no heading font is set, Streamlit uses `theme.font` for headings.
+# headingFont =
+
+# An array of fonts to use in your app. Each font in the array is a table
+# (dictionary) with the following three attributes: font, url, weight,
+# and style. To host a font with your app, enable static file serving
+# with `server.enableStaticServing=true`. You can define multiple
+# [[theme.fontFaces]] tables.
+
+# For example, each font is defined in a [[theme.fontFaces]] table as
+# follows:
+# [[theme.fontFaces]]
+# font = "font_name"
+# url = "app/static/font_file.woff"
+# weight = 400
+# style = "normal"
+# fontFaces =
+
+# The radius used as basis for the corners of most UI elements. This can
+# be one of the following: "none", "small", "medium", "large", "full",
+# or the number in pixels or rem. For example, you can use "10px",
+# "0.5rem", or "2rem". To follow best practices, use rem instead of
+# pixels when specifying a numeric size.
+# baseRadius =
+
+# The color of the border around elements.
+# borderColor =
+
+# Whether to show a border around input widgets.
+# showWidgetBorder =
+
+# Sets the root font size (in pixels) for the app, which determines the
+# overall scale of text and UI elements. The default base font size is 16.
+# baseFontSize =
+
+# Whether to show a vertical separator between the sidebar and the main
+# content area.
+# showSidebarBorder =
+
+
+[theme.sidebar]
+
+# Primary accent color.
+# primaryColor =
+
+# Background color of the app.
+# backgroundColor =
+
+# Background color used for most interactive widgets.
+# secondaryBackgroundColor =
+
+# Color used for almost all text.
+# textColor =
+
+# Color used for all links.
+# linkColor =
+
+# Background color used for code blocks.
+# codeBackgroundColor =
+
+# The font family for all text, except code blocks. This can be one of
+# the following:
+# - "sans-serif"
+# - "serif"
+# - "monospace"
+# - the `font` value for a custom font table under [[theme.fontFaces]]
+# - a comma-separated list of these (as a single string) to specify
+# fallbacks
+# For example, you can use the following:
+# font = "cool-font, fallback-cool-font, sans-serif"
+# font =
+
+# The font family to use for code (monospace) in the sidebar. This can be
+# one of the following:
+# - "sans-serif"
+# - "serif"
+# - "monospace"
+# - the `font` value for a custom font table under [[theme.fontFaces]]
+# - a comma-separated list of these (as a single string) to specify
+# fallbacks
+# codeFont =
+
+# The font family to use for headings. This can be one of the following:
+# - "sans-serif"
+# - "serif"
+# - "monospace"
+# - the `font` value for a custom font table under [[theme.fontFaces]]
+# - a comma-separated list of these (as a single string) to specify
+# fallbacks
+# If no heading font is set, Streamlit uses `theme.font` for headings.
+# headingFont =
+
+# The radius used as basis for the corners of most UI elements. This can
+# be one of the following: "none", "small", "medium", "large", "full",
+# or the number in pixels or rem. For example, you can use "10px",
+# "0.5rem", or "2rem". To follow best practices, use rem instead of
+# pixels when specifying a numeric size.
+# baseRadius =
+
+# The color of the border around elements.
+# borderColor =
+
+# Whether to show a border around input widgets.
+# showWidgetBorder =
+
+
+[secrets]
+
+# List of locations where secrets are searched. An entry can be a path to a
+# TOML file or directory path where Kubernetes style secrets are saved.
+# Order is important, import is first to last, so secrets in later files
+# will take precedence over earlier ones.
+
+# files = [ "~/.streamlit/secrets.toml", "{WORKDIR}/.streamlit/secrets.toml",]

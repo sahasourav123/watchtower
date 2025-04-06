@@ -15,7 +15,11 @@ logger = logging.getLogger()
 st.set_page_config(layout='wide', page_title='Alert Groups', initial_sidebar_state='expanded')
 
 st.header("Alert Groups")
-user_code = auth.ensure_logged_in(required_access_level='viewer')
+user_code = auth.who_am_i()
+
+if user_code == 'guest':
+    st.warning("Please login to view your profile.")
+    st.stop()
 
 _channel_column_config = {
     'channel_name': 'Name',
