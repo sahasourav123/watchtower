@@ -28,6 +28,7 @@ jobs:
       run: |
         rm .env
         echo "${{ secrets.ENV_FILE }}" > .env
+        echo "${{ secrets.ST_SECRETS_CONFIG }}" | base64 -d > ./frontend/.streamlit/config.toml
 
     - name: Build Service
       run: docker compose build frontend
