@@ -22,6 +22,11 @@ cc = st.columns([1, 4])
 day_limit = cc[0].number_input('Day Limit', value=UPTIME_HISTORY_LIMIT, min_value=1, max_value=90)
 
 uptime_df = backend.fetch_uptime_history(user_code, day_limit)
+if uptime_df.empty:
+    st.info("No Response Analytics Data found.. ")
+    st.page_link("pages/show-monitors.py", label=f"**Goto Monitor List**", icon=":material/lists:")
+    st.stop()
+
 response_stats_df = backend.get_daily_response_stats(user_code, day_limit)
 selected_monitor_group = cc[1].multiselect('Select Monitor Group(s)', uptime_df['monitor_group'].unique())
 if selected_monitor_group:
@@ -43,14 +48,15 @@ def response_time_analytics():
     st.subheader(":material/timer: Response Time Statistics")
     # filter df for monitor type: api, website, server
     filtered_df = uptime_df[uptime_df['monitor_type'] == filter_monitor_type]
+    time_unit = "s" if filter_monitor_type == "event" else "ms"
 
     # Box Plot for Avg Response Time
-    fig4 = px.box(filtered_df, x='monitor_name', y='avg_rt', title='Average Response Time Distribution')
-    fig4.update_layout(yaxis_title='Average Response Time (ms)', xaxis_title='Monitor Name')
+    fig4 = px.box(filtered_df, x='monitor_name', y='avg_rt', title=f'Average Response Time({time_unit}) Distribution')
+    fig4.update_layout(yaxis_title=f'Average Response Time ({time_unit})', xaxis_title='Monitor Name')
 
     # Box Plot for P90 Response Time
-    fig5 = px.box(filtered_df, x='monitor_name', y='p90_rt', title='90th Percentile Response Time Distribution')
-    fig5.update_layout(yaxis_title='90th Percentile Response Time (ms)', xaxis_title='Monitor Name')
+    fig5 = px.box(filtered_df, x='monitor_name', y='p90_rt', title=f'90th Percentile Response Time({time_unit}) Distribution')
+    fig5.update_layout(yaxis_title=f'90th Percentile Response Time ({time_unit})', xaxis_title='Monitor Name')
 
     # Show the figures
     st.plotly_chart(fig4)

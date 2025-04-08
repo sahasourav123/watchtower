@@ -13,26 +13,6 @@ def _default_user():
     st.sidebar.write(f"User: **{user_code}**")
     return user_code
 
-def get_user_code(logged_in_user):
-    user_email = logged_in_user["email"]
-    known_user = user_api.get_users({'user_email': user_email})
-    # create profile page (if new user, ask for more details)
-    if not known_user or len(known_user) == 0:
-        logger.warning(f"Creating new user with email: {user_email}")
-
-        # create user in db
-        new_user = user_api.create_user({
-            "user_name": logged_in_user.get("name"),
-            "user_email": logged_in_user.get("email"),
-            "avatar": logged_in_user.get("avatar"),
-            "auth_providers": [logged_in_user.get("provider")]
-        })
-        logger.info(f"New User Created: {new_user}")
-        return new_user['user_code']
-    else:
-        return known_user['user_code']
-
-
 def who_am_i():
     with st.sidebar:
         utils.page_navigation_menu()
@@ -45,10 +25,9 @@ def who_am_i():
             return _default_user()
 
         else:
-            _user_ = user_api.get_users({'user_email': st.experimental_user.email})
-            user_code = _user_.get('user_code', None)
+            _users_ = user_api.get_users({'user_email': st.experimental_user.email})
 
-            if not user_code:
+            if not _users_ or len(_users_) == 0:
                 logger.info(f"Creating new user with email: {st.experimental_user.email}")
                 # create user in db
                 _user_ = user_api.create_user({
@@ -59,6 +38,8 @@ def who_am_i():
                 })
                 logger.info(f"New User Created: {_user_}")
                 user_code = _user_.get('user_code')
+            else:
+                user_code = _users_[0].get('user_code')
 
             st.divider()
             print(f"Logged in: {user_code}")

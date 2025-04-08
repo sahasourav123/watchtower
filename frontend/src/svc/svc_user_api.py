@@ -19,12 +19,13 @@ if not USER_API_SERVICE:
 def create_user(data):
     url = f"{USER_API_SERVICE}/create/user"
     res = requests.post(url, data=json.dumps(data))
+    logger.info(f"New User Created: {res.text}")
 
     if res.status_code == 200:
         # clear cache
         get_users.clear()
         get_user.clear()
-        return res.json().get('data')
+        return res.json()
     else:
         return None
 

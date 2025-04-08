@@ -92,6 +92,12 @@ if user_code == 'guest':
 def get_monitors():
     # fetch monitors & run history
     _monitor_df = backend.fetch_monitors(user_code)
+    if _monitor_df.empty:
+        st.info("No monitors created yet. Please create a monitor first.")
+        # page link to create monitor
+        st.page_link("pages/create-monitor.py", label=f"**Create New Monitor**", icon=":material/flare:")
+        st.stop()
+
     _monito_history_df = backend.fetch_monitor_history(user_code, OUTCOME_HISTORY_LIMIT)
 
     # merge monitor and history
@@ -105,14 +111,15 @@ def get_monitors():
 
 
 monitor_df = get_monitors()
+# if monitor_df.empty:
+#     st.info("No monitors created yet.")
+#     st.stop()
+
 selected_monitor_group = st.multiselect('Select Monitor Group(s)', monitor_df['monitor_group'].unique())
 if selected_monitor_group:
     monitor_df = monitor_df[monitor_df['monitor_group'].isin(selected_monitor_group)]
 st.subheader(f"Monitor List ({monitor_df.shape[0]})")
 
-if monitor_df.empty:
-    st.warning("No monitors created yet.")
-    st.stop()
 
 # display monitors
 column_config = {

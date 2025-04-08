@@ -16,6 +16,11 @@ if user_code == 'guest':
 cc = st.columns([1, 4])
 day_limit = cc[0].number_input('Day Limit', value=UPTIME_HISTORY_LIMIT, min_value=1, max_value=90)
 uptime_df = backend.fetch_uptime_history(user_code, day_limit)
+if uptime_df.empty:
+    st.info("No Uptime History found...")
+    st.page_link("pages/show-monitors.py", label=f"**Goto Monitor List**", icon=":material/lists:")
+    st.stop()
+
 selected_monitor_group = cc[1].multiselect('Select Monitor Group(s)', uptime_df['monitor_group'].unique())
 
 # display selected groups in red

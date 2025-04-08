@@ -72,6 +72,9 @@ placeholder = {
 
 rc = st.columns(len(placeholder))
 
+if len(stats) == 0:
+    st.info("You have No active monitors")
+
 for idx, stat in enumerate(stats):
     monitor_type = stat['monitor_type'].upper()
     rc[placeholder[monitor_type]].metric(label=monitor_type, value=utils.format_large_number(stat['active_monitors'], 0))
