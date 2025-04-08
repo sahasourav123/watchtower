@@ -19,7 +19,7 @@ from routes.protected_route import protected_route
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    REDIS_URL = os.getenv('REDIS_URL', 'redis://redis:6379/0')
+    REDIS_URL = os.getenv('REDIS_URL')
     logger.info(f"Connecting to Redis: {REDIS_URL}")
     redis_cache = FastApiRedisCache()
     redis_cache.init(
@@ -36,18 +36,30 @@ async def lifespan(app: FastAPI):
 
 # Application setup
 description = """
-Open Source Uptime Monitor for APIs, Websites, Events etc. with real-time alert. 🚀
+### API Architecture Overview
 
-## Public Endpoints - /api/public/v1/
-* Can be invoked from anywhere without any authentication
-* IP level Rate Limit applies
+The system utilizes a tiered API structure to manage access control, security, and usage patterns effectively:
 
-## External Endpoints - /api/external/v1/
-* Must be used with **x-api-key** header
-* User Level Rate Limit applies
+1.  **`/api/public/v1/` - Public Endpoints**
+    * **Description:** Provides read-only or general status information accessible without credentials.
+    * **Authentication:** Anonymous. No API keys or logins are needed.
+    * **Security Context:** Lowest privilege; designed for safe public exposure.
+    * **Constraints:** Subject to rate limiting based on the client's source IP address to ensure fair use and mitigate DoS risks.
+    * **Typical Use:** Embedding status updates on public websites, simple health checks.
 
-## Internal Endpoints - /internal/v1/
-* Can NOT be invoked from outside world.
+2.  **`/api/external/v1/` - Authenticated External Endpoints**
+    * **Description:** Enables authenticated interactions for managing resources, retrieving user-specific data, or triggering actions.
+    * **Authentication:** Requires a valid API Key passed in the standard `x-api-key` request header.
+    * **Security Context:** User/Application-level privileges based on the provided key.
+    * **Constraints:** Rate limits are enforced per API key, allowing different tiers of usage based on the associated account or application.
+    * **Typical Use:** Third-party integrations, custom monitoring clients, automation scripts.
+
+3.  **`/internal/v1/` - Internal Service Endpoints**
+    * **Description:** Core backend APIs used for internal operations and communication between services within the system.
+    * **Authentication:** Not designed for direct external authentication; access is typically controlled at the network level (e.g., firewall rules, private VPC, localhost binding).
+    * **Security Context:** Assumes a trusted internal environment within a self-hosted deployment.
+    * **Constraints:** May have internal performance controls but generally bypasses external rate-limiting logic.
+    * **Typical Use:** Essential for the functioning of self-hosted instances (e.g., communication between scheduler, checker, and notification services). **Do not attempt to call these from outside the deployment.**
 """
 app = FastAPI(
     title=__service__.title(),

@@ -26,14 +26,14 @@ jobs:
 
       - name: Release Backend
         if: github.event.inputs.service == 'backend'
-        uses: python-semantic-release/python-semantic-release@v9.8.7
+        uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
           directory: ./backend
           github_token: ${{ secrets.GH_TOKEN }}
 
       - name: Release Frontend
         if: github.event.inputs.service == 'frontend'
-        uses: python-semantic-release/python-semantic-release@v9.8.7
+        uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
           directory: ./frontend
           github_token: ${{ secrets.GH_TOKEN }}
