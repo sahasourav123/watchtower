@@ -27,6 +27,8 @@ def webhook_alert(monitor: dict, recipient: dict, state):
     payload = {
         'monitor_id': monitor['monitor_id'],
         'monitor_name': monitor['monitor_name'],
+        'monitor_type': monitor['monitor_type'],
+        'monitor_body': monitor['monitor_body'],
         'state': state,
     }
     response = requests.post(
@@ -50,7 +52,7 @@ def email_alert(monitor: dict, email_id: str, state):
                 }
             }],
         'subject': f"[Watchtower] Uptime Alert on Monitor #{monitor['monitor_id']}",
-        'htmlbody': f"<div>{monitor['monitor_name']} (Monitor #{monitor['monitor_id']}) is {state}.</div>"
+        'htmlbody': f"<div>{monitor['monitor_name']} (Monitor #{monitor['monitor_id']}) is {state}.<p>{monitor['monitor_body']}</p></div>"
     }
 
     headers = {
@@ -67,7 +69,8 @@ def slack_alert(monitor: dict, channel_id: str, state):
 
     payload = {
         'channel': channel_id,
-        'text': f"{monitor['monitor_name']} (Monitor #{monitor['monitor_id']}) is {state}."
+        'text': f"""{monitor['monitor_name']} (Monitor #{monitor['monitor_id']}) is {state}.
+        {monitor['monitor_body']}"""
     }
 
     headers = {
