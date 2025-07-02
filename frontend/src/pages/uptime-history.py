@@ -39,7 +39,7 @@ def get_bar_color(uptime_pct):
         return 'white'
     elif uptime_pct < 90.0:
         return 'red'
-    elif uptime_pct < 100:
+    elif uptime_pct < 99.9:
         return 'orange'
     else:
         return 'green'
