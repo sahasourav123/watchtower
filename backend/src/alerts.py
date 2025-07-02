@@ -67,10 +67,26 @@ def email_alert(monitor: dict, email_id: str, state):
 def slack_alert(monitor: dict, channel_id: str, state):
     url = "https://slack.com/api/chat.postMessage"
 
+    # Choose color: green for "passed", red for "failed"
+    color = "#2ECC40" if state.lower() == "up" else "#FF4136"
+
     payload = {
         'channel': channel_id,
-        'text': f"""{monitor['monitor_name']} (Monitor #{monitor['monitor_id']}) is {state}.
-        {monitor['monitor_body']}"""
+        'attachments': [
+            {
+                "color": color,
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": f"*{monitor['monitor_name']}* (Monitor #{monitor['monitor_id']}) is *{state.upper()}*.\n"
+                                    f"{monitor['monitor_body'].get('url') or monitor['monitor_body'].get('host')}"
+                        }
+                    }
+                ]
+            }
+        ]
     }
 
     headers = {
