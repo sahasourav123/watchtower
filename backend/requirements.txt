@@ -4,7 +4,7 @@ fastapi-redis-cache==0.2.5
 python-multipart==0.0.20
 rich==13.9.4
 requests==2.32.3
-pandas==2.2.3
+pandas==2.3.2
 envyaml==1.10.211231
 apscheduler==3.11.0
 psycopg2-binary==2.9.10
