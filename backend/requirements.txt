@@ -9,6 +9,6 @@ envyaml==1.10.211231
 apscheduler==3.11.0
 psycopg2-binary==2.9.10
 python-dotenv==1.0.1
-SQLAlchemy==2.0.38
+SQLAlchemy==2.0.44
 python-whois==0.9.5
 dnspython==2.6.1
