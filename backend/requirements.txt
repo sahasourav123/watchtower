@@ -2,7 +2,7 @@ uvicorn==0.35.0
 fastapi==0.115.14
 fastapi-redis-cache==0.2.5
 python-multipart==0.0.20
-rich==13.9.4
+rich==14.2.0
 requests==2.32.3
 pandas==2.2.3
 envyaml==1.10.211231
